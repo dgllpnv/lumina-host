@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(npm install)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "Bash(where:*)",
+      "Bash(python3:*)",
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(xcopy:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(xxd:*)"
+    ]
+  }
+}
