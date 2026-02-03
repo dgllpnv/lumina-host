@@ -50,7 +50,7 @@ export const listTransactions = async (req: AuthenticatedRequest, res: Response)
 
 export const getTransaction = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const transaction = await prisma.financialTransaction.findUnique({
@@ -123,7 +123,7 @@ export const createTransaction = async (req: AuthenticatedRequest, res: Response
 
 export const updateTransaction = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     // Check if transaction exists and belongs to org
@@ -174,7 +174,7 @@ export const updateTransaction = async (req: AuthenticatedRequest, res: Response
 
 export const deleteTransaction = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     // Check if transaction exists and belongs to org

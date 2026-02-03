@@ -33,7 +33,7 @@ export const listTablesRooms = async (req: AuthenticatedRequest, res: Response) 
 
 export const getTableRoom = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const item = await prisma.tableRoom.findUnique({
@@ -108,7 +108,7 @@ export const createTableRoom = async (req: AuthenticatedRequest, res: Response) 
 
 export const updateTableRoom = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.tableRoom.findUnique({
@@ -155,7 +155,7 @@ export const updateTableRoom = async (req: AuthenticatedRequest, res: Response) 
 
 export const deleteTableRoom = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.tableRoom.findUnique({
@@ -200,7 +200,7 @@ export const deleteTableRoom = async (req: AuthenticatedRequest, res: Response) 
 
 export const updateTableRoomStatus = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
     const { status } = req.body;
 

@@ -65,7 +65,7 @@ export const listReservations = async (req: AuthenticatedRequest, res: Response)
 
 export const getReservation = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const reservation = await prisma.reservation.findUnique({
@@ -190,7 +190,7 @@ export const createReservation = async (req: AuthenticatedRequest, res: Response
 
 export const updateReservation = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.reservation.findUnique({
@@ -279,7 +279,7 @@ export const updateReservation = async (req: AuthenticatedRequest, res: Response
 
 export const checkIn = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.reservation.findUnique({
@@ -326,7 +326,7 @@ export const checkIn = async (req: AuthenticatedRequest, res: Response) => {
 
 export const checkOut = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
     const { createTransaction = true } = req.body;
 
@@ -391,7 +391,7 @@ export const checkOut = async (req: AuthenticatedRequest, res: Response) => {
 
 export const cancelReservation = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.reservation.findUnique({

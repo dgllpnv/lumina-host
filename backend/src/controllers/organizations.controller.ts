@@ -47,7 +47,7 @@ export const getOrganization = async (req: AuthenticatedRequest, res: Response) 
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Check access
     if (req.user.role !== 'super_admin' && req.user.organizationId !== id) {
@@ -108,7 +108,7 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { nome, tipo, plano, ativo } = req.body;
 
     // Check access
@@ -144,7 +144,7 @@ export const deleteOrganization = async (req: AuthenticatedRequest, res: Respons
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Check if organization has users
     const userCount = await prisma.profile.count({

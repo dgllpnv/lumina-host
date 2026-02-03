@@ -39,7 +39,7 @@ export const listInventory = async (req: AuthenticatedRequest, res: Response) =>
 
 export const getInventoryItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const item = await prisma.inventoryItem.findUnique({
@@ -103,7 +103,7 @@ export const createInventoryItem = async (req: AuthenticatedRequest, res: Respon
 
 export const updateInventoryItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.inventoryItem.findUnique({
@@ -148,7 +148,7 @@ export const updateInventoryItem = async (req: AuthenticatedRequest, res: Respon
 
 export const deleteInventoryItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
 
     const existing = await prisma.inventoryItem.findUnique({
@@ -176,7 +176,7 @@ export const deleteInventoryItem = async (req: AuthenticatedRequest, res: Respon
 
 export const adjustInventory = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { effectiveOrgId } = req;
     const { adjustment, reason } = req.body;
 

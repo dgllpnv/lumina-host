@@ -59,7 +59,7 @@ export const getTeamMember = async (req: AuthenticatedRequest, res: Response) =>
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const member = await prisma.profile.findUnique({
       where: { id },
@@ -97,7 +97,7 @@ export const updateTeamMember = async (req: AuthenticatedRequest, res: Response)
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { nome, role, organizationId, password } = req.body;
 
     // Get current member
@@ -178,7 +178,7 @@ export const deleteTeamMember = async (req: AuthenticatedRequest, res: Response)
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Cannot delete self
     if (id === req.user.userId) {
