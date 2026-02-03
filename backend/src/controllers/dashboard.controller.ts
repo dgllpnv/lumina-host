@@ -258,7 +258,11 @@ export const getRevenueChart = async (req: AuthenticatedRequest, res: Response) 
       if (!dailyData[dateKey]) {
         dailyData[dateKey] = { receita: 0, despesa: 0 };
       }
-      dailyData[dateKey][t.tipo] += t.valor;
+      if (t.tipo === 'receita') {
+        dailyData[dateKey].receita += t.valor;
+      } else if (t.tipo === 'despesa') {
+        dailyData[dateKey].despesa += t.valor;
+      }
     });
 
     // Fill missing dates

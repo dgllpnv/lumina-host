@@ -10,13 +10,13 @@ const REFRESH_TOKEN_EXPIRY = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 function generateAccessToken(payload: JwtPayload): string {
   const secret = process.env.JWT_ACCESS_SECRET;
   if (!secret) throw new Error('JWT_ACCESS_SECRET not configured');
-  return jwt.sign(payload, secret, { expiresIn: ACCESS_TOKEN_EXPIRY });
+  return jwt.sign(payload as object, secret, { expiresIn: ACCESS_TOKEN_EXPIRY as jwt.SignOptions['expiresIn'] });
 }
 
 function generateRefreshToken(userId: string): string {
   const secret = process.env.JWT_REFRESH_SECRET;
   if (!secret) throw new Error('JWT_REFRESH_SECRET not configured');
-  return jwt.sign({ userId }, secret, { expiresIn: REFRESH_TOKEN_EXPIRY });
+  return jwt.sign({ userId }, secret, { expiresIn: REFRESH_TOKEN_EXPIRY as jwt.SignOptions['expiresIn'] });
 }
 
 function parseExpiryToMs(expiry: string): number {
@@ -63,7 +63,7 @@ export const login = async (req: Request, res: Response) => {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role as AppRole,
       organizationId: user.organizationId,
     };
 
@@ -87,7 +87,7 @@ export const login = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         nome: user.nome,
-        role: user.role,
+        role: user.role as AppRole,
         organizationId: user.organizationId,
         organization: user.organization,
       }
@@ -132,7 +132,7 @@ export const register = async (req: Request, res: Response) => {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role as AppRole,
       organizationId: user.organizationId,
     };
 
@@ -156,7 +156,7 @@ export const register = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         nome: user.nome,
-        role: user.role,
+        role: user.role as AppRole,
         organizationId: user.organizationId,
       }
     });
@@ -217,7 +217,7 @@ export const refresh = async (req: Request, res: Response) => {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role as AppRole,
       organizationId: user.organizationId,
     };
 
@@ -287,7 +287,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response) => {
       email: user.email,
       nome: user.nome,
       avatarUrl: user.avatarUrl,
-      role: user.role,
+      role: user.role as AppRole,
       organizationId: user.organizationId,
       organization: user.organization,
       createdAt: user.createdAt,
@@ -378,7 +378,7 @@ export const adminCreateUser = async (req: AuthenticatedRequest, res: Response) 
         id: user.id,
         email: user.email,
         nome: user.nome,
-        role: user.role,
+        role: user.role as AppRole,
         organizationId: user.organizationId,
         organization: user.organization,
       }

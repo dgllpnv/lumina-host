@@ -8,7 +8,7 @@ export const listOrganizations = async (req: AuthenticatedRequest, res: Response
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    let organizations;
+    let organizations: Awaited<ReturnType<typeof prisma.organization.findMany>>;
 
     if (req.user.role === 'super_admin') {
       // Super admin can see all organizations
