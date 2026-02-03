@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { organizationsService, setSelectedOrganization, getSelectedOrganization } from '@/services';
 import { useAuth } from './AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -24,7 +24,7 @@ interface OrganizationContextType {
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'lumina_active_org_id';
+const STORAGE_KEY = 'lumina_selected_org_id';
 
 export function OrganizationProvider({ children }: { children: React.ReactNode }) {
   const { user, profile, isSuperAdmin } = useAuth();
@@ -34,7 +34,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [activeOrganizationId, setActiveOrgIdState] = useState<string | null>(() => {
     // Inicializar do localStorage
     if (typeof window !== 'undefined') {
-      return localStorage.getItem(STORAGE_KEY);
+      return getSelectedOrganization();
     }
     return null;
   });
@@ -52,40 +52,35 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     setIsLoading(true);
 
     try {
-      if (isSuperAdmin) {
-        // Super Admin vê todas as organizações
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('*')
-          .order('nome');
+      const data = await organizationsService.list();
+      console.log('[OrganizationContext] Found organizations:', data?.length);
 
-        if (error) {
-          console.error('[OrganizationContext] Error fetching orgs:', error);
-        } else {
-          console.log('[OrganizationContext] Found organizations:', data?.length);
-          setOrganizations(data || []);
-        }
-      } else if (profile?.organization_id) {
-        // Admin/Staff vê apenas sua organização
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('*')
-          .eq('id', profile.organization_id)
-          .single();
+      // Normalize the data to match the expected interface
+      const normalizedOrgs: Organization[] = data.map(org => ({
+        id: org.id,
+        nome: org.nome,
+        tipo: org.tipo,
+        plano: org.plano,
+        ativo: org.ativo,
+        created_at: org.createdAt,
+        updated_at: org.updatedAt,
+      }));
 
-        if (error) {
-          console.error('[OrganizationContext] Error fetching org:', error);
-        } else if (data) {
-          setOrganizations([data]);
-          // Auto-selecionar a organização do usuário
-          if (!activeOrganizationId) {
-            setActiveOrgIdState(data.id);
-            localStorage.setItem(STORAGE_KEY, data.id);
-          }
-        }
+      setOrganizations(normalizedOrgs);
+
+      // Auto-select organization for non-super-admin users
+      if (!isSuperAdmin && profile?.organization_id && !activeOrganizationId) {
+        setActiveOrgIdState(profile.organization_id);
+        setSelectedOrganization(profile.organization_id);
+      }
+
+      // If super admin and there's only one org, auto-select it
+      if (isSuperAdmin && normalizedOrgs.length === 1 && !activeOrganizationId) {
+        setActiveOrgIdState(normalizedOrgs[0].id);
+        setSelectedOrganization(normalizedOrgs[0].id);
       }
     } catch (err) {
-      console.error('[OrganizationContext] Unexpected error:', err);
+      console.error('[OrganizationContext] Error fetching organizations:', err);
     } finally {
       setIsLoading(false);
     }
@@ -101,12 +96,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     console.log('[OrganizationContext] Setting active organization:', id);
 
     setActiveOrgIdState(id);
-
-    if (id) {
-      localStorage.setItem(STORAGE_KEY, id);
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    setSelectedOrganization(id);
 
     // Invalidar todas as queries para recarregar dados com nova organização
     queryClient.invalidateQueries();
@@ -120,7 +110,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     if (!user) {
       setActiveOrgIdState(null);
       setOrganizations([]);
-      localStorage.removeItem(STORAGE_KEY);
+      setSelectedOrganization(null);
     }
   }, [user]);
 

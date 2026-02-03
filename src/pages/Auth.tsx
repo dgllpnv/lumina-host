@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,23 +44,9 @@ export default function Auth() {
 
           case 'staff':
             // Staff vai para o PDV correspondente ao tipo da organização
-            if (profile.organization_id) {
-              try {
-                const { data: org } = await supabase
-                  .from('organizations')
-                  .select('tipo')
-                  .eq('id', profile.organization_id)
-                  .single();
-
-                if (org?.tipo === 'pousada') {
-                  navigate('/pos-hotel', { replace: true });
-                } else {
-                  navigate('/pos-restaurante', { replace: true });
-                }
-              } catch (err) {
-                console.error('[Auth Page] Error fetching org type:', err);
-                navigate('/pos-restaurante', { replace: true });
-              }
+            // O tipo da organização vem junto com o user da API
+            if (user && 'organization' in user && user.organization?.tipo === 'pousada') {
+              navigate('/pos-hotel', { replace: true });
             } else {
               navigate('/pos-restaurante', { replace: true });
             }

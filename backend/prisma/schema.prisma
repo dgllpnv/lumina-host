@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============== MODELS ==============
+// Note: SQLite doesn't support enums, so we use String with validation in code
+// AppRole: "super_admin" | "admin" | "staff"
+// OrganizationType: "restaurante" | "pousada"
+// ReservationStatus: "reservado" | "checkin" | "checkout" | "cancelado"
+// TableRoomStatus: "livre" | "ocupado" | "sujo" | "reservado"
+// TransactionStatus: "pendente" | "pago" | "cancelado" | "atrasado"
+// TransactionType: "receita" | "despesa"
+
+model Organization {
+  id        String   @id @default(uuid())
+  nome      String
+  tipo      String   @default("restaurante")
+  plano     String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profiles     Profile[]
+  transactions FinancialTransaction[]
+  inventory    InventoryItem[]
+  tablesRooms  TableRoom[]
+  reservations Reservation[]
+
+  @@map("organizations")
+}
+
+model Profile {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  nome           String?
+  avatarUrl      String?  @map("avatar_url")
+  role           String   @default("staff")
+  organizationId String?  @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
+  userRoles     UserRole[]
+  refreshTokens RefreshToken[]
+
+  @@map("profiles")
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  role   String
+
+  // Relations
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model FinancialTransaction {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  tipo           String
+  categoria      String
+  descricao      String?
+  valor          Float
+  status         String    @default("pendente")
+  metodoPagto    String?   @map("metodo_pagto")
+  dataVencimento DateTime? @map("data_vencimento")
+  dataPagamento  DateTime? @map("data_pagamento")
+  reservationId  String?   @map("reservation_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  reservation  Reservation? @relation(fields: [reservationId], references: [id])
+
+  @@map("financial_transactions")
+}
+
+model InventoryItem {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  nome           String
+  quantidade     Int      @default(0)
+  unidade        String   @default("un")
+  categoria      String?
+  estoqueMinimo  Int?     @map("estoque_minimo")
+  precoUnitario  Float?   @map("preco_unitario")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("inventory_items")
+}
+
+model TableRoom {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  nome           String
+  tipo           String   @default("mesa")
+  status         String   @default("livre")
+  capacidade     Int?
+  andar          Int?
+  descricao      String?
+  precoBase      Float?   @map("preco_base")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  reservations Reservation[]
+
+  @@map("tables_rooms")
+}
+
+model Reservation {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  roomId         String?   @map("room_id")
+  roomNumber     String    @map("room_number")
+  roomType       String    @map("room_type")
+  guestName      String    @map("guest_name")
+  guestEmail     String?   @map("guest_email")
+  guestPhone     String?   @map("guest_phone")
+  guestDocument  String?   @map("guest_document")
+  checkinDate    DateTime  @map("checkin_date")
+  checkoutDate   DateTime  @map("checkout_date")
+  actualCheckin  DateTime? @map("actual_checkin")
+  actualCheckout DateTime? @map("actual_checkout")
+  status         String    @default("reservado")
+  dailyRate      Float     @map("daily_rate")
+  totalStay      Float?    @map("total_stay")
+  notes          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization           @relation(fields: [organizationId], references: [id])
+  room         TableRoom?             @relation(fields: [roomId], references: [id])
+  transactions FinancialTransaction[]
+
+  @@map("reservations")
+}

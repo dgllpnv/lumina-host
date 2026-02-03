@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { authService, User, tokenStorage } from '@/services';
 import { toast } from 'sonner';
 
 type AppRole = 'super_admin' | 'admin' | 'staff';
@@ -16,7 +15,6 @@ interface Profile {
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -35,288 +33,159 @@ const log = (message: string, data?: any) => {
   console.log(`[AuthContext ${time}] ${message}`, data ?? '');
 };
 
+// Convert API User to Profile
+const userToProfile = (user: User): Profile => ({
+  id: user.id,
+  organization_id: user.organizationId,
+  role: user.role,
+  nome: user.nome,
+  avatar_url: user.avatarUrl || null,
+  email: user.email,
+});
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Função BLINDADA para buscar perfil
-  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    log('Iniciando fetch de perfil...', { userId });
+  // Fetch user profile
+  const fetchProfile = useCallback(async (): Promise<User | null> => {
+    log('Fetching user profile...');
 
     try {
-      // MÉTODO 1: Tentar RPC get_my_profile (bypassa RLS)
-      log('Tentando RPC get_my_profile...');
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_my_profile');
+      const userData = await authService.getMe();
+      log('Profile fetched successfully:', userData);
+      return userData;
+    } catch (error: any) {
+      log('Error fetching profile:', error);
 
-      if (!rpcError && rpcData) {
-        log('RPC get_my_profile SUCESSO:', rpcData);
-        return {
-          id: rpcData.id,
-          organization_id: rpcData.organization_id,
-          role: (rpcData.role || 'staff') as AppRole,
-          nome: rpcData.nome,
-          avatar_url: rpcData.avatar_url,
-          email: rpcData.email,
-        };
-      }
-
-      log('RPC falhou, tentando fallback...', rpcError);
-
-      // MÉTODO 2: Fallback - Query direta à tabela profiles
-      log('Tentando query direta em profiles...');
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (profileError) {
-        log('Query profiles FALHOU:', profileError);
-
-        if (profileError.code === 'PGRST116') {
-          log('ERRO CRÍTICO: Perfil não existe para usuário autenticado!');
-          toast.error('Perfil não encontrado. Contate o administrador.');
-          await supabase.auth.signOut();
-          return null;
-        }
-
-        // Tentar buscar a role separadamente
-        log('Tentando buscar role separadamente...');
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', userId)
-          .single();
-
-        if (roleData) {
-          // Criar perfil básico com role encontrada
-          const basicProfile: Profile = {
-            id: userId,
-            organization_id: null,
-            role: (roleData.role || 'staff') as AppRole,
-            nome: null,
-            avatar_url: null,
-            email: user?.email || null,
-          };
-          log('Perfil básico criado com role:', basicProfile);
-          return basicProfile;
-        }
-
-        toast.error('Erro ao carregar perfil. Aplique o SQL de fix no Supabase.');
+      if (error.response?.status === 401) {
+        // Token expired or invalid
+        tokenStorage.clearTokens();
         return null;
       }
 
-      // MÉTODO 3: Buscar role da tabela user_roles
-      log('Profile encontrado, buscando role...');
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      const finalRole = roleData?.role || profileData.role || 'staff';
-      log('Role final determinada:', { roleFromUserRoles: roleData?.role, roleFromProfile: profileData.role, final: finalRole });
-
-      const completeProfile: Profile = {
-        id: profileData.id,
-        organization_id: profileData.organization_id,
-        role: finalRole as AppRole,
-        nome: profileData.nome,
-        avatar_url: profileData.avatar_url,
-        email: profileData.email,
-      };
-
-      log('Perfil completo:', completeProfile);
-      return completeProfile;
-
-    } catch (error) {
-      log('ERRO INESPERADO:', error);
-      toast.error('Erro crítico ao carregar perfil.');
       return null;
     }
-  }, [user?.email]);
+  }, []);
 
   // Refresh manual do perfil
   const refreshProfile = useCallback(async () => {
-    if (user?.id) {
-      log('Refresh manual de perfil...');
-      const newProfile = await fetchProfile(user.id);
-      if (newProfile) {
-        setProfile(newProfile);
-        log('Perfil atualizado:', newProfile);
-      }
-    }
-  }, [user?.id, fetchProfile]);
-
-  // Handler de mudança de auth
-  const handleAuthChange = useCallback(async (event: AuthChangeEvent, newSession: Session | null) => {
-    log('Auth state change:', { event, hasSession: !!newSession });
-
-    if (event === 'SIGNED_OUT' || !newSession?.user) {
-      log('Usuário deslogado');
-      setSession(null);
-      setUser(null);
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
-    setSession(newSession);
-    setUser(newSession.user);
-
-    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-      log('Sessão ativa, carregando perfil...');
-
-      // Delay para garantir que trigger executou
-      if (event === 'SIGNED_IN') {
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
-
-      const profileData = await fetchProfile(newSession.user.id);
-
-      if (profileData) {
-        setProfile(profileData);
-        log('AUTH COMPLETO:', { userId: newSession.user.id, role: profileData.role });
-      } else {
-        // BLINDAGEM: Se perfil não carregou, FORÇAR LOGOUT
-        log('BLINDAGEM: Perfil não carregado, forçando logout...');
-        await supabase.auth.signOut();
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-      }
-
-      setLoading(false);
+    log('Refreshing profile...');
+    const userData = await fetchProfile();
+    if (userData) {
+      setUser(userData);
+      setProfile(userToProfile(userData));
+      log('Profile refreshed:', userData);
     }
   }, [fetchProfile]);
 
-  // Inicialização
+  // Initialize auth state
   useEffect(() => {
-    log('Inicializando AuthContext...');
+    log('Initializing AuthContext...');
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          (event, session) => {
-            if (mounted) {
-              setTimeout(() => handleAuthChange(event, session), 0);
-            }
-          }
-        );
+        const token = tokenStorage.getAccessToken();
 
-        log('Verificando sessão existente...');
-        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
-
-        if (error) {
-          log('Erro ao verificar sessão:', error);
+        if (!token) {
+          log('No token found');
           setLoading(false);
-          return () => subscription.unsubscribe();
+          return;
         }
 
-        if (existingSession?.user) {
-          log('Sessão existente encontrada:', { userId: existingSession.user.id });
-          setSession(existingSession);
-          setUser(existingSession.user);
-
-          const profileData = await fetchProfile(existingSession.user.id);
-          if (mounted) {
-            if (profileData) {
-              setProfile(profileData);
-              log('Perfil carregado de sessão existente:', profileData);
-            } else {
-              // BLINDAGEM: Sem perfil = logout
-              log('BLINDAGEM: Sessão sem perfil, deslogando...');
-              await supabase.auth.signOut();
-            }
-          }
-        } else {
-          log('Nenhuma sessão existente');
-        }
+        log('Token found, verifying...');
+        const userData = await fetchProfile();
 
         if (mounted) {
+          if (userData) {
+            setUser(userData);
+            setProfile(userToProfile(userData));
+            log('Auth initialized:', userData);
+          } else {
+            log('Invalid token, clearing...');
+            tokenStorage.clearTokens();
+          }
           setLoading(false);
         }
-
-        return () => {
-          subscription.unsubscribe();
-        };
       } catch (error) {
-        log('Erro crítico na inicialização:', error);
+        log('Error initializing auth:', error);
         if (mounted) {
+          tokenStorage.clearTokens();
           setLoading(false);
         }
       }
     };
 
-    const cleanup = initializeAuth();
+    initializeAuth();
+
+    // Listen for logout events (from API interceptor)
+    const handleLogout = () => {
+      log('Logout event received');
+      setUser(null);
+      setProfile(null);
+    };
+
+    window.addEventListener('auth:logout', handleLogout);
+
     return () => {
       mounted = false;
-      cleanup.then(unsub => unsub?.());
+      window.removeEventListener('auth:logout', handleLogout);
     };
-  }, [fetchProfile, handleAuthChange]);
+  }, [fetchProfile]);
 
   // Sign In
   const signIn = async (email: string, password: string) => {
-    log('Tentando login...', { email });
+    log('Attempting login...', { email });
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const response = await authService.login(email, password);
 
-      if (error) {
-        log('Erro no login:', error);
-        return { error: error as Error };
-      }
+      setUser(response.user);
+      setProfile(userToProfile(response.user));
 
-      log('Login bem-sucedido:', { userId: data.user?.id });
+      log('Login successful:', { userId: response.user.id, role: response.user.role });
       return { error: null };
-    } catch (error) {
-      log('Erro inesperado no login:', error);
-      return { error: error as Error };
+    } catch (error: any) {
+      log('Login error:', error);
+
+      const message = error.response?.data?.error || 'Erro ao fazer login';
+      return { error: new Error(message) };
     }
   };
 
   // Sign Up
   const signUp = async (email: string, password: string, nome: string) => {
-    log('Tentando cadastro...', { email, nome });
+    log('Attempting registration...', { email, nome });
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: { nome },
-        },
-      });
+      const response = await authService.register(email, password, nome);
 
-      if (error) {
-        log('Erro no cadastro:', error);
-        return { error: error as Error };
-      }
+      setUser(response.user);
+      setProfile(userToProfile(response.user));
 
-      log('Cadastro bem-sucedido:', { userId: data.user?.id });
+      log('Registration successful:', { userId: response.user.id });
       return { error: null };
-    } catch (error) {
-      log('Erro inesperado no cadastro:', error);
-      return { error: error as Error };
+    } catch (error: any) {
+      log('Registration error:', error);
+
+      const message = error.response?.data?.error || 'Erro ao criar conta';
+      return { error: new Error(message) };
     }
   };
 
   // Sign Out
   const signOut = async () => {
-    log('Fazendo logout...');
+    log('Signing out...');
 
     try {
-      await supabase.auth.signOut();
-      log('Logout bem-sucedido');
+      await authService.logout();
+      log('Logout successful');
     } catch (error) {
-      log('Erro no logout:', error);
+      log('Logout error (ignoring):', error);
     } finally {
       setUser(null);
-      setSession(null);
       setProfile(null);
     }
   };
@@ -324,9 +193,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isSuperAdmin = profile?.role === 'super_admin';
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // Log de estado
+  // Log state changes
   useEffect(() => {
-    log('Estado atual:', {
+    log('Current state:', {
       loading,
       hasUser: !!user,
       hasProfile: !!profile,
@@ -340,7 +209,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        session,
         profile,
         loading,
         signIn,

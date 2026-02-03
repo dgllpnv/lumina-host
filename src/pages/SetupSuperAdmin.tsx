@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { authService, organizationsService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,6 @@ import {
   Building2,
   UtensilsCrossed,
   Crown,
-  User,
   RefreshCw
 } from "lucide-react";
 import { z } from "zod";
@@ -36,10 +35,10 @@ const setupSchema = z.object({
 const TEST_USERS = [
   {
     id: "super",
-    email: "super@lumina.com",
-    password: "123456",
+    email: "superadmin@lumina.com",
+    password: "superadmin",
     nome: "Super Admin",
-    role: "super_admin",
+    role: "super_admin" as const,
     organization: null,
     icon: Crown,
     color: "amber",
@@ -48,10 +47,10 @@ const TEST_USERS = [
   },
   {
     id: "admin",
-    email: "admin@restaurante.com",
-    password: "123456",
+    email: "admin@lumina.com",
+    password: "admin",
     nome: "Admin Restaurante",
-    role: "admin",
+    role: "admin" as const,
     organization: "Restaurante Sabor & Arte",
     icon: Building2,
     color: "indigo",
@@ -60,10 +59,10 @@ const TEST_USERS = [
   },
   {
     id: "staff",
-    email: "staff@restaurante.com",
-    password: "123456",
+    email: "staff@lumina.com",
+    password: "staff",
     nome: "Garçom João",
-    role: "staff",
+    role: "staff" as const,
     organization: "Restaurante Sabor & Arte",
     icon: UtensilsCrossed,
     color: "emerald",
@@ -99,17 +98,11 @@ export default function SetupSuperAdmin() {
     const checkSystemStatus = async () => {
       console.log('[Setup] Checking if system is already initialized...');
       try {
-        const { data, error } = await supabase.rpc('check_system_initialized');
-
-        if (error) {
-          console.error('[Setup] Error checking system status:', error);
-          setSystemAlreadyInitialized(false);
-        } else {
-          console.log('[Setup] System status:', data);
-          setSystemAlreadyInitialized(data?.initialized ?? false);
-        }
+        const status = await authService.getSystemStatus();
+        console.log('[Setup] System status:', status);
+        setSystemAlreadyInitialized(status.initialized);
       } catch (err) {
-        console.error('[Setup] Unexpected error:', err);
+        console.error('[Setup] Error checking system status:', err);
         setSystemAlreadyInitialized(false);
       } finally {
         setIsCheckingSystem(false);
@@ -139,78 +132,23 @@ export default function SetupSuperAdmin() {
         return;
       }
 
-      console.log('[Setup] Step 1: Creating user in Auth...');
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-          data: { nome },
-        },
-      });
+      console.log('[Setup] Creating super admin via API...');
+      const result = await authService.setupSuperAdmin(email, password, nome);
 
-      if (authError) {
-        console.error('[Setup] Auth error:', authError);
-        throw authError;
+      if (result.success) {
+        setSuccess(true);
+        toast({
+          title: "Super Admin criado!",
+          description: "Conta de Super Admin criada com sucesso.",
+        });
+
+        setTimeout(() => {
+          navigate('/auth');
+        }, 2000);
       }
-
-      if (!authData.user) {
-        throw new Error('Usuário não foi criado. Verifique se o email já está em uso.');
-      }
-
-      console.log('[Setup] User created:', authData.user.id);
-
-      console.log('[Setup] Step 2: Waiting for trigger to create profile...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      console.log('[Setup] Step 3: Promoting to super_admin via RPC...');
-      const { data: promoteResult, error: promoteError } = await supabase.rpc(
-        'promote_to_super_admin',
-        { target_user_id: authData.user.id }
-      );
-
-      if (promoteError) {
-        console.error('[Setup] RPC error:', promoteError);
-        const { error: fallbackError } = await supabase
-          .from('user_roles')
-          .upsert({
-            user_id: authData.user.id,
-            role: 'super_admin'
-          }, {
-            onConflict: 'user_id,role'
-          });
-
-        if (fallbackError) {
-          console.error('[Setup] Fallback also failed:', fallbackError);
-          toast({
-            title: "Aviso",
-            description: "Usuário criado, mas a promoção a super admin pode ter falhado.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        console.log('[Setup] Promote result:', promoteResult);
-      }
-
-      console.log('[Setup] Step 4: Signing out...');
-      await supabase.auth.signOut();
-
-      setSuccess(true);
-      toast({
-        title: "Super Admin criado!",
-        description: "Conta de Super Admin criada com sucesso.",
-      });
-
-      setTimeout(() => {
-        navigate('/auth');
-      }, 2000);
-
     } catch (err: any) {
       console.error('[Setup] Error:', err);
-      let errorMessage = err.message || "Ocorreu um erro inesperado.";
-      if (err.message?.includes('already registered')) {
-        errorMessage = "Este email já está registrado.";
-      }
+      let errorMessage = err.response?.data?.error || err.message || "Ocorreu um erro inesperado.";
       toast({
         title: "Erro",
         description: errorMessage,
@@ -225,35 +163,31 @@ export default function SetupSuperAdmin() {
   const createTestOrganization = async () => {
     console.log('[Setup] Creating test organization...');
 
-    const { data: existingOrg } = await supabase
-      .from('organizations')
-      .select('id')
-      .eq('nome', 'Restaurante Sabor & Arte')
-      .single();
+    try {
+      const orgs = await organizationsService.list();
+      const existingOrg = orgs.find(org => org.nome === 'Restaurante Sabor & Arte');
 
-    if (existingOrg) {
-      console.log('[Setup] Test organization already exists:', existingOrg.id);
-      return existingOrg.id;
+      if (existingOrg) {
+        console.log('[Setup] Test organization already exists:', existingOrg.id);
+        return existingOrg.id;
+      }
+    } catch (err) {
+      // If list fails (no auth), try to create anyway
     }
 
-    const { data: newOrg, error } = await supabase
-      .from('organizations')
-      .insert({
+    try {
+      const newOrg = await organizationsService.create({
         nome: 'Restaurante Sabor & Arte',
         tipo: 'restaurante',
         plano: 'premium',
-        ativo: true
-      })
-      .select('id')
-      .single();
+      });
 
-    if (error) {
-      console.error('[Setup] Error creating test org:', error);
-      throw error;
+      console.log('[Setup] Test organization created:', newOrg.id);
+      return newOrg.id;
+    } catch (err: any) {
+      console.error('[Setup] Error creating test org:', err);
+      throw err;
     }
-
-    console.log('[Setup] Test organization created:', newOrg.id);
-    return newOrg.id;
   };
 
   // Create a single test user
@@ -263,97 +197,26 @@ export default function SetupSuperAdmin() {
     setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'creating' }));
 
     try {
-      // Create user in Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      await authService.adminCreateUser({
         email: testUser.email,
         password: testUser.password,
-        options: {
-          data: { nome: testUser.nome },
-        },
+        nome: testUser.nome,
+        role: testUser.role,
+        organizationId: testUser.organization ? orgId || undefined : undefined,
       });
-
-      // Se usuário já existe, tentar fazer login para pegar o ID
-      if (authError?.message?.includes('already registered')) {
-        console.log(`[Setup] User ${testUser.email} already registered, trying to update role...`);
-
-        // Fazer login temporário para pegar dados
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: testUser.email,
-          password: testUser.password,
-        });
-
-        if (loginError) {
-          console.log(`[Setup] Could not login as ${testUser.email}:`, loginError);
-          setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'success' }));
-          return;
-        }
-
-        const userId = loginData?.user?.id;
-        if (userId) {
-          // Usar RPC para configurar usuário de teste
-          const { data: setupResult, error: setupError } = await supabase.rpc('setup_test_user', {
-            target_user_id: userId,
-            target_role: testUser.role,
-            target_org_id: testUser.organization ? orgId : null
-          });
-
-          if (setupError) {
-            console.log(`[Setup] RPC setup_test_user error:`, setupError);
-            // Fallback para promote_to_super_admin se for super_admin
-            if (testUser.role === 'super_admin') {
-              await supabase.rpc('promote_to_super_admin', { target_user_id: userId });
-            }
-          } else {
-            console.log(`[Setup] setup_test_user result:`, setupResult);
-          }
-        }
-
-        // Fazer logout
-        await supabase.auth.signOut();
-        setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'success' }));
-        return;
-      }
-
-      if (authError) {
-        throw authError;
-      }
-
-      if (!authData?.user) {
-        throw new Error('Falha ao criar usuário');
-      }
-
-      const userId = authData.user.id;
-      console.log(`[Setup] User created with ID: ${userId}`);
-
-      // Wait for trigger to create profile
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Usar RPC para configurar usuário
-      const { data: setupResult, error: setupError } = await supabase.rpc('setup_test_user', {
-        target_user_id: userId,
-        target_role: testUser.role,
-        target_org_id: testUser.organization ? orgId : null
-      });
-
-      if (setupError) {
-        console.log(`[Setup] RPC setup_test_user error:`, setupError);
-        // Fallback
-        if (testUser.role === 'super_admin') {
-          await supabase.rpc('promote_to_super_admin', { target_user_id: userId });
-        }
-      } else {
-        console.log(`[Setup] setup_test_user result:`, setupResult);
-      }
-
-      // Fazer logout após criar
-      await supabase.auth.signOut();
 
       setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'success' }));
       console.log(`[Setup] Test user ${testUser.email} created successfully`);
 
     } catch (err: any) {
       console.error(`[Setup] Error creating ${testUser.email}:`, err);
-      setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'error' }));
+
+      // If user already exists, mark as success
+      if (err.response?.data?.error?.includes('already registered')) {
+        setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'success' }));
+      } else {
+        setTestUsersStatus(prev => ({ ...prev, [testUser.id]: 'error' }));
+      }
     }
   };
 
@@ -363,21 +226,48 @@ export default function SetupSuperAdmin() {
     setTestUsersStatus({ super: 'idle', admin: 'idle', staff: 'idle' });
 
     try {
-      // First sign out any current user
-      await supabase.auth.signOut();
+      // First, we need to be authenticated as super admin
+      // Try to login as super admin first
+      let isAuthenticated = false;
 
-      // Create organization first
+      try {
+        await authService.login('superadmin@lumina.com', 'superadmin');
+        isAuthenticated = true;
+      } catch (err) {
+        console.log('[Setup] Super admin login failed, trying to create...');
+      }
+
+      // If not authenticated, try to setup super admin first
+      if (!isAuthenticated) {
+        try {
+          await authService.setupSuperAdmin('superadmin@lumina.com', 'superadmin', 'Super Admin');
+          await authService.login('superadmin@lumina.com', 'superadmin');
+          setTestUsersStatus(prev => ({ ...prev, super: 'success' }));
+        } catch (err: any) {
+          if (err.response?.data?.error?.includes('already exists')) {
+            await authService.login('superadmin@lumina.com', 'superadmin');
+            setTestUsersStatus(prev => ({ ...prev, super: 'success' }));
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        setTestUsersStatus(prev => ({ ...prev, super: 'success' }));
+      }
+
+      // Create organization
       const orgId = await createTestOrganization();
       setTestOrgId(orgId);
 
-      // Create users sequentially
+      // Create admin and staff users
       for (const testUser of TEST_USERS) {
+        if (testUser.id === 'super') continue; // Already created
         await createTestUser(testUser, testUser.organization ? orgId : null);
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      // Sign out after creating all
-      await supabase.auth.signOut();
+      // Logout
+      await authService.logout();
 
       toast({
         title: "Usuários de teste criados!",
@@ -388,7 +278,7 @@ export default function SetupSuperAdmin() {
       console.error('[Setup] Error in test user creation:', err);
       toast({
         title: "Erro",
-        description: err.message || "Falha ao criar usuários de teste.",
+        description: err.response?.data?.error || err.message || "Falha ao criar usuários de teste.",
         variant: "destructive",
       });
     } finally {
@@ -566,11 +456,11 @@ export default function SetupSuperAdmin() {
                   <div className="flex gap-3">
                     <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-amber-800">
-                      <p className="font-medium mb-1">Importante:</p>
+                      <p className="font-medium mb-1">Credenciais de Teste:</p>
                       <ul className="list-disc list-inside space-y-1 text-amber-700">
-                        <li>As funções RPC devem estar configuradas no Supabase</li>
-                        <li>Após criar, faça login com cada usuário para testar</li>
-                        <li>Se os usuários já existirem, serão marcados como sucesso</li>
+                        <li>Super Admin: superadmin@lumina.com / superadmin</li>
+                        <li>Admin: admin@lumina.com / admin</li>
+                        <li>Staff: staff@lumina.com / staff</li>
                       </ul>
                     </div>
                   </div>
@@ -641,7 +531,7 @@ export default function SetupSuperAdmin() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="super@lumina.com"
+                        placeholder="superadmin@lumina.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -654,7 +544,7 @@ export default function SetupSuperAdmin() {
                         <Input
                           id="password"
                           type={showPassword ? "text" : "password"}
-                          placeholder="123456"
+                          placeholder="superadmin"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
@@ -696,7 +586,7 @@ export default function SetupSuperAdmin() {
         </Tabs>
 
         <p className="text-center text-sm text-slate-400 mt-8">
-          Lumina Host Setup v1.0 | Esta página deve ser protegida em produção
+          Lumina Host Setup v2.0 | Backend: Express + Prisma + Railway
         </p>
       </motion.div>
     </div>

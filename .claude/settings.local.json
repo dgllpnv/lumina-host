@@ -20,7 +20,9 @@
       "Bash(npm install:*)",
       "Bash(xcopy:*)",
       "Bash(powershell -Command:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)"
     ]
   }
 }
