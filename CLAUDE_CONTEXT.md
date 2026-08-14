@@ -1,9 +1,7 @@
 # LUMINA HOST - Contexto para Continuacao do Desenvolvimento
 
-> **Ultima atualizacao:** 17/01/2026
-> **Desenvolvedor:** Enzo
-> **Assistente:** Claude (Opus 4.5)
-> **GitHub:** https://github.com/dgllpnv/lumina-host
+> **Ultima atualizacao:** 14/08/2026
+> **Assistente:** Claude
 
 ---
 
@@ -27,88 +25,57 @@
 
 ---
 
-## 2. CREDENCIAIS SUPABASE (IMPORTANTE!)
+## 2. MIGRACAO SUPABASE -> BACKEND PROPRIO (14/08/2026)
 
-```
-Project ID: hzozuldxgqprcnlpeovt
-URL: https://hzozuldxgqprcnlpeovt.supabase.co
-Dashboard: https://supabase.com/dashboard/project/hzozuldxgqprcnlpeovt
+O projeto **nao usa mais Supabase**. Toda a stack de dados (auth, banco, RLS) foi
+substituida por um backend Express + Prisma proprio, rodando contra PostgreSQL.
+Motivo: padronizar o projeto no mesmo formato usado em outros deploys (frontend/
++ backend/ separados, Docker + EasyPanel na Hostinger, Postgres proprio) em vez
+de depender de um provedor externo.
 
-Anon Key (publica - usada no frontend):
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6b3p1bGR4Z3FwcmNubHBlb3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1Mjc5OTcsImV4cCI6MjA4NDEwMzk5N30.KuprsDLa_fJCis0_WNf5hkhHGg-aNHil5stQs6ZevJ8
+O que mudou:
+- Removida a pasta `src/integrations/supabase/` e a dependencia `@supabase/supabase-js`.
+- Removida a pasta `supabase/` (migrations SQL legadas) e os scripts soltos
+  `seed-hospedes.js`, `setup-pms-integration.js`, `setup-rbac.js`, `test-auth.js`
+  (todos falavam direto com o Supabase).
+- Repositorio reestruturado em `frontend/` (o que era `src/`, `index.html`, etc.
+  na raiz) e `backend/` (ja existia, Express + Prisma).
+- Todas as paginas que ainda chamavam `supabase.from(...)` direto (Financeiro,
+  Estoque, Equipe, Configuracoes, AdminOrganizations, SuperAdminOrganizationSelect,
+  POSHotel, useCheckout) foram migradas para os services em `frontend/src/services/`
+  (axios contra a API do backend).
+- Credenciais antigas de Supabase que estavam neste arquivo foram removidas —
+  se algum dado antigo precisar ser recuperado, ele so existe no projeto Supabase
+  original (fora deste repositorio) ou no historico do git anterior a esta migracao.
 
-Service Role Key (secreta - para migracoes SQL):
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6b3p1bGR4Z3FwcmNubHBlb3Z0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODUyNzk5NywiZXhwIjoyMDg0MTAzOTk3fQ.QE0eLa-WazGj_NjClvyyx-akaGasTrs5YQFRYTqzsKw
-```
-
-### Como executar migracoes SQL:
-1. Acesse: https://supabase.com/dashboard/project/hzozuldxgqprcnlpeovt/sql
-2. Cole o conteudo do arquivo `.sql`
-3. Clique em "Run"
-
----
-
-## 3. ESTADO ATUAL DO BANCO DE DADOS
-
-### Tabelas que EXISTEM no Supabase:
-- `organizations` ✅ (tem dados)
-- `profiles` ✅ (tem dados)
-- `user_roles` ✅ (tem dados)
-
-### Tabelas que FALTAM criar:
-- `financial_transactions` ❌
-- `inventory_items` ❌
-- `tables_rooms` ❌
-- `reservations` ❌
-
-### MIGRACAO PENDENTE:
-**Execute o arquivo:** `supabase/migrations/20260117_consolidated_fix.sql`
-
-Este arquivo cria todas as tabelas faltantes, RLS policies, funcoes e a funcao `admin_create_user` para criacao direta de usuarios.
+Detalhes completos de arquitetura, comandos e troubleshooting: ver `CLAUDE.md`.
+Guia de deploy em producao: ver `.docs/DEPLOY-EASYPANEL.md`.
 
 ---
 
-## 4. COMO RODAR O PROJETO
-
-### Requisitos:
-- Node.js 18+
-- npm
-
-### Comandos:
-```bash
-cd C:\Users\Enzo\Downloads\lumina-host-main\lumina-host-main
-npm install
-npm run dev
-```
-
-### Servidor:
-- **Porta:** 8080 (ou 8081 se 8080 estiver ocupada)
-- **URL:** http://localhost:8080
-- **Nao usa Docker** - apenas Vite dev server
-
-### Logins disponiveis:
-```
-Super Admin:
-Email: super@lumina.com
-Senha: 123456
-```
-
----
-
-## 5. STACK TECNOLOGICA
+## 3. STACK TECNOLOGICA ATUAL
 
 ```
-Frontend:
+Frontend (frontend/):
 - React 18 + TypeScript + Vite
 - TailwindCSS + shadcn/ui
 - Framer Motion (animacoes)
 - Recharts (graficos)
 - React Router DOM v6
 - TanStack Query (cache)
+- axios (cliente HTTP -> backend)
 
-Backend:
-- Supabase (PostgreSQL + Auth + RLS)
-- Row Level Security para isolamento multi-tenant
+Backend (backend/):
+- Node.js + Express + Prisma
+- PostgreSQL
+- JWT (access + refresh token)
+- RBAC via middleware (super_admin / admin / staff)
+- Multi-tenant via middleware de filtro por organizacao
+
+Deploy:
+- Docker (Dockerfile em frontend/ e backend/)
+- docker-compose.yml na raiz sobe o Postgres local de dev
+- Producao: EasyPanel numa VPS Hostinger
 
 Design System:
 - "Boutique Charm" - Slate/Indigo/Amber
@@ -118,229 +85,45 @@ Design System:
 
 ---
 
-## 6. ESTRUTURA DE PASTAS
+## 4. MODELO DE DADOS
 
-```
-src/
-├── components/
-│   ├── dashboard/        # KPICard, RevenueChart, ExpensesPieChart, TopProducts, RecentTransactions
-│   ├── layout/           # AppLayout, AppSidebar (mostra nome da org)
-│   └── ui/               # shadcn components (Button, Dialog, Input, Textarea, etc)
-├── contexts/
-│   ├── AuthContext.tsx   # Autenticacao + perfil do usuario
-│   └── OrganizationContext.tsx  # Organizacao ativa (useOrganization hook)
-├── hooks/
-│   ├── useDashboardData.ts  # KPIs e dados do dashboard (saldo MENSAL)
-│   ├── useCheckout.ts       # Checkout do POS
-│   └── use-toast.ts
-├── integrations/
-│   └── supabase/
-│       ├── client.ts     # Cliente Supabase (usa env vars)
-│       └── types.ts      # Tipos gerados do banco (inclui novos campos)
-├── pages/
-│   ├── Dashboard.tsx     # Dashboard com KPIs reais
-│   ├── POSRestaurante.tsx # POS completo do restaurante
-│   ├── POSHotel.tsx      # POS do hotel + Governanca
-│   ├── Financeiro.tsx    # Gestao financeira + CSV export (com org filter)
-│   ├── Estoque.tsx       # CRUD de produtos
-│   ├── Equipe.tsx        # Gestao de colaboradores (criacao direta)
-│   ├── Configuracoes.tsx # Mesas e Quartos (campos avancados para quartos)
-│   ├── Auth.tsx          # Login/Signup
-│   └── ...
-├── .env                  # Variaveis de ambiente (Supabase keys)
-└── App.tsx               # Rotas e providers
+Fonte da verdade: `backend/prisma/schema.prisma`. Tabelas principais (mesmos
+nomes de campo em snake_case no banco, camelCase no Prisma/TypeScript):
 
-supabase/
-└── migrations/
-    ├── 20260113012112_*.sql      # Schema base (parcialmente aplicado)
-    ├── 20260113022444_*.sql      # handle_new_user update
-    ├── 20260115000000_*.sql      # fix super admin setup
-    ├── 20260115100000_*.sql      # fix RLS circular dependency
-    ├── 20260116_pms_pos_*.sql    # reservations table
-    ├── 20260117_enterprise_*.sql # enterprise upgrade (RLS completo)
-    └── 20260117_consolidated_fix.sql  # *** EXECUTAR ESTE ***
-```
+- **organizations** — id, nome, tipo (restaurante | pousada), plano, ativo
+- **profiles** — id, email, passwordHash, nome, avatarUrl, role, organizationId
+- **user_roles** — id, userId, role
+- **refresh_tokens** — id, token, userId, expiresAt
+- **financial_transactions** — id, organizationId, tipo (receita|despesa), categoria, valor, status, metodoPagto, dataVencimento, dataPagamento, reservationId
+- **inventory_items** — id, organizationId, nome, quantidade, unidade, categoria, estoqueMinimo, precoUnitario
+- **tables_rooms** — id, organizationId, nome, tipo (mesa|quarto), status, capacidade, andar, descricao, precoBase
+- **reservations** — id, organizationId, roomId, roomNumber, roomType, guestName, guestEmail, guestPhone, checkinDate, checkoutDate, status, dailyRate, totalStay
+
+Enums (`app_role`, `organization_type`, `reservation_status`, `table_room_status`,
+`transaction_status`, `transaction_type`) sao validados em codigo (campos `String`
+no Prisma), nao como enum nativo do Postgres — ver comentario no topo do schema.
 
 ---
 
-## 7. ESTRUTURA DO BANCO DE DADOS
+## 5. FEATURES IMPLEMENTADAS
 
-### Enums:
-```sql
-app_role: 'super_admin' | 'admin' | 'staff'
-organization_type: 'restaurante' | 'pousada'
-transaction_type: 'receita' | 'despesa'
-transaction_status: 'pendente' | 'pago' | 'cancelado' | 'atrasado'
-table_room_status: 'livre' | 'ocupado' | 'sujo' | 'reservado'
-reservation_status: 'reservado' | 'checkin' | 'checkout' | 'cancelado'
-```
-
-### Tabelas:
-
-**organizations**
-- id, nome, tipo, plano, ativo, created_at, updated_at
-
-**profiles**
-- id (FK auth.users), organization_id (FK organizations), role, nome, avatar_url, email, created_at, updated_at
-
-**user_roles**
-- id, user_id (FK auth.users), role
-
-**financial_transactions**
-- id, organization_id, tipo, valor, categoria, descricao, metodo_pagto, status, data_vencimento, data_pagamento, reservation_id, created_at, updated_at
-
-**inventory_items**
-- id, organization_id, nome, quantidade, unidade, preco_unitario, estoque_minimo, categoria, created_at, updated_at
-
-**tables_rooms**
-- id, organization_id, nome, tipo, capacidade, status, **andar** (novo), **descricao** (novo), **preco_base** (novo), created_at, updated_at
-
-**reservations**
-- id, organization_id, room_id, room_number, room_type, guest_name, guest_email, guest_phone, guest_document, checkin_date, checkout_date, actual_checkin, actual_checkout, status, daily_rate, total_stay, notes, created_at, updated_at
-
-### Funcoes RPC importantes:
-- `get_my_organization_id()` - Retorna org do usuario atual
-- `is_super_admin()` - Verifica se e super admin
-- `admin_create_user(p_email, p_password, p_nome, p_role)` - Cria usuario diretamente
-- `get_guest_charges(p_reservation_id)` - Extrato do hospede
-- `get_guest_total(p_reservation_id)` - Total da conta do hospede
+- Autenticacao JWT com roles (super_admin, admin, staff) e rotas protegidas
+- Contexto de organizacao (multi-tenant, super admin pode trocar de organizacao)
+- KDS Lite, transferencia de mesa, divisao de conta, carrinho por mesa (PDV restaurante)
+- Governanca hotel (mapa de quartos, limpeza)
+- Integracao hotel-restaurante: cobrar consumo do restaurante na conta do quarto (via `reservationId` nas transacoes financeiras)
+- Dashboard com KPIs reais, Estoque com CRUD completo, Equipe com criacao direta de usuarios, Financeiro com exportacao CSV, Configuracoes de mesas/quartos
 
 ---
 
-## 8. FEATURES IMPLEMENTADAS
+## 6. BUGS CONHECIDOS / PENDENCIAS
 
-### Sprint RBAC (Concluido)
-- [x] Autenticacao com Supabase Auth
-- [x] Roles: super_admin, admin, staff
-- [x] Rotas protegidas por role
-- [x] Contexto de organizacao
-
-### Sprint Staff (Concluido)
-- [x] KDS Lite: Enviar pedidos para cozinha
-- [x] Transferencia de Mesa
-- [x] Divisao de Conta
-- [x] Carrinho por Mesa
-- [x] Governanca Hotel
-
-### Sprint PMS+POS (Concluido)
-- [x] Integracao hotel-restaurante
-- [x] Cobrar consumo na conta do quarto
-- [x] Tabela `reservations`
-
-### Sprint Admin (Concluido)
-- [x] Dashboard Real com KPIs do Supabase
-- [x] Estoque com CRUD completo
-- [x] Equipe com gestao de colaboradores
-- [x] Configuracoes de mesas/quartos
-- [x] Financeiro com exportacao CSV
-
-### Sprint Enterprise (CONCLUIDO HOJE - 17/01/2026)
-- [x] **RLS Completo**: Policies para todas as tabelas (financial_transactions, inventory_items, tables_rooms, reservations)
-- [x] **Funcao get_my_organization_id()**: Helper para RLS
-- [x] **Criacao Direta de Usuarios**: Funcao `admin_create_user` via RPC
-- [x] **Indicador de Organizacao no Sidebar**: Mostra "Gerenciando: [Nome]"
-- [x] **Saldo Mensal no Dashboard**: Filtro por periodo mensal (nao historico total)
-- [x] **Seguranca no Financeiro**: Filtro organization_id no UPDATE
-- [x] **Campos Avancados para Quartos**: andar, descricao, preco_base
+1. **Carrinhos do POS nao persistem**: se recarregar a pagina, carrinhos das mesas sao perdidos (estado local, nao vai pro backend).
+2. **Sem seed de dados de demonstracao pos-migracao**: banco comeca vazio — use `/setup` para criar o primeiro super admin, depois cadastre organizacao, mesas/quartos e itens de estoque manualmente (ou rode `npm run db:seed` em `backend/`, se o seed script existir e estiver atualizado).
 
 ---
 
-## 9. ARQUIVOS MODIFICADOS NA ULTIMA SESSAO
-
-| Arquivo | Modificacao |
-|---------|-------------|
-| `supabase/migrations/20260117_consolidated_fix.sql` | CRIADO - Migracao consolidada |
-| `supabase/migrations/20260117_enterprise_upgrade.sql` | CRIADO - Enterprise upgrade |
-| `src/integrations/supabase/types.ts` | Novos campos tables_rooms + funcoes |
-| `src/components/layout/AppSidebar.tsx` | Indicador de organizacao |
-| `src/hooks/useDashboardData.ts` | Saldo mensal |
-| `src/pages/Financeiro.tsx` | Filtro org no update |
-| `src/pages/Equipe.tsx` | Criacao direta de usuarios |
-| `src/pages/Configuracoes.tsx` | Campos avancados quartos |
-
----
-
-## 10. COMO RETOMAR O DESENVOLVIMENTO
-
-### Passo 1: Verificar se migracao foi executada
-```bash
-# Testar se tabelas existem via API
-curl -s "https://hzozuldxgqprcnlpeovt.supabase.co/rest/v1/financial_transactions?select=id&limit=1" \
-  -H "apikey: [ANON_KEY]" \
-  -H "Authorization: Bearer [ANON_KEY]"
-```
-
-Se retornar erro "table not found", execute a migracao:
-1. Abra: https://supabase.com/dashboard/project/hzozuldxgqprcnlpeovt/sql
-2. Cole o conteudo de `supabase/migrations/20260117_consolidated_fix.sql`
-3. Execute
-
-### Passo 2: Rodar o projeto
-```bash
-cd C:\Users\Enzo\Downloads\lumina-host-main\lumina-host-main
-npm run dev
-```
-
-### Passo 3: Testar
-1. Acesse http://localhost:8080
-2. Login: super@lumina.com / 123456
-3. Verifique se o Dashboard carrega KPIs
-4. Teste criar colaborador em Equipe
-5. Teste criar quarto com campos avancados em Configuracoes
-
----
-
-## 11. PADROES DE CODIGO
-
-### Queries Supabase - SEMPRE filtrar por org:
-```typescript
-// SELECT
-const { data } = await supabase
-  .from("tabela")
-  .select("*")
-  .eq("organization_id", profile.organization_id);
-
-// UPDATE - incluir filtro de seguranca
-const { error } = await supabase
-  .from("tabela")
-  .update({ campo: valor })
-  .eq("id", item.id)
-  .eq("organization_id", profile.organization_id);  // <- Importante!
-```
-
-### Criar usuario via RPC:
-```typescript
-const { data, error } = await supabase.rpc("admin_create_user", {
-  p_email: "email@exemplo.com",
-  p_password: "senha123",
-  p_nome: "Nome Completo",
-  p_role: "staff",  // ou "admin"
-});
-```
-
-### Usar organizacao no componente:
-```typescript
-import { useOrganization } from "@/contexts/OrganizationContext";
-
-function MeuComponente() {
-  const { activeOrganization } = useOrganization();
-  // activeOrganization.nome, activeOrganization.id, etc
-}
-```
-
----
-
-## 12. BUGS CONHECIDOS / PENDENCIAS
-
-1. **Carrinhos do POS nao persistem**: Se recarregar a pagina, carrinhos das mesas sao perdidos
-
-2. **Hospedes PMS**: Depende de dados na tabela `reservations` - criar hospedes de teste se necessario
-
-3. **Migracao Pendente**: Executar `20260117_consolidated_fix.sql` se tabelas estiverem faltando
-
----
-
-## 13. PROXIMOS PASSOS SUGERIDOS
+## 7. PROXIMOS PASSOS SUGERIDOS
 
 ### Melhorias de UX
 - [ ] Notificacoes em tempo real
@@ -357,18 +140,51 @@ function MeuComponente() {
 - [ ] Testes automatizados (Vitest)
 - [ ] CI/CD com GitHub Actions
 - [ ] Monitoramento de erros (Sentry)
+- [ ] Persistir frigobar/carrinho do PDV no backend (hoje e so estado local)
 
 ---
 
-## 14. ARQUIVOS .ENV
+## 8. PADROES DE CODIGO
 
-```env
-# .env (na raiz do projeto)
-VITE_SUPABASE_PROJECT_ID="hzozuldxgqprcnlpeovt"
-VITE_SUPABASE_URL="https://hzozuldxgqprcnlpeovt.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6b3p1bGR4Z3FwcmNubHBlb3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1Mjc5OTcsImV4cCI6MjA4NDEwMzk5N30.KuprsDLa_fJCis0_WNf5hkhHGg-aNHil5stQs6ZevJ8"
+### Toda chamada de dados passa pelos services (nunca chamar a API direto com axios cru):
+```typescript
+import { transactionsService } from "@/services";
+
+const { data } = await transactionsService.list({ status: "pendente" });
+await transactionsService.create({ tipo: "receita", categoria: "vendas", valor: 100 });
+```
+
+O filtro por organizacao **nao** precisa ser feito manualmente no frontend — o
+backend aplica isso automaticamente (`orgFilterMiddleware`, usando o token JWT
+ou o header `X-Organization-Id` para super admins). Nao adicione `organizationId`
+nos payloads de create/update; o backend ignora/sobrescreve com o valor correto.
+
+### Criar usuario (admin/staff) direto:
+```typescript
+import { authService } from "@/services";
+
+await authService.adminCreateUser({
+  email: "email@exemplo.com",
+  password: "senha123",
+  nome: "Nome Completo",
+  role: "staff", // ou "admin"
+  organizationId: profile.organization_id,
+});
+```
+
+### Usar organizacao ativa no componente:
+```typescript
+import { useOrganization } from "@/contexts/OrganizationContext";
+
+function MeuComponente() {
+  const { activeOrganization } = useOrganization();
+  // activeOrganization.nome, activeOrganization.id, etc
+}
 ```
 
 ---
 
-> **Nota para o Claude**: Ao retomar, PRIMEIRO verifique se as tabelas existem no Supabase. Se nao, execute a migracao `20260117_consolidated_fix.sql`. O usuario (Enzo) prefere respostas diretas e codigo funcional. Sempre use organization_id para filtrar dados. Evite emojis no codigo.
+> **Nota para o Claude**: nao ha mais Supabase neste projeto — nao sugerir
+> `supabase.from(...)` nem reintroduzir a dependencia. Toda persistencia passa
+> pelo backend Express (`backend/`) via os services em `frontend/src/services/`.
+> Evite emojis no codigo.

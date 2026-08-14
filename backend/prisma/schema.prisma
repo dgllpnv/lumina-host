@@ -8,7 +8,8 @@ datasource db {
 }
 
 // ============== MODELS ==============
-// Note: SQLite doesn't support enums, so we use String with validation in code
+// Note: Prisma enums require a migration to change; we use String with
+// validation in code instead, so status/role values stay easy to evolve.
 // AppRole: "super_admin" | "admin" | "staff"
 // OrganizationType: "restaurante" | "pousada"
 // ReservationStatus: "reservado" | "checkin" | "checkout" | "cancelado"

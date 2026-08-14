@@ -10,7 +10,7 @@ export const listTransactions = async (req: AuthenticatedRequest, res: Response)
       return res.status(400).json({ error: 'Organization context required' });
     }
 
-    const { tipo, status, categoria, startDate, endDate, limit = '100', offset = '0' } = req.query;
+    const { tipo, status, categoria, reservationId, startDate, endDate, limit = '100', offset = '0' } = req.query;
 
     const where: any = {
       organizationId: effectiveOrgId,
@@ -19,6 +19,7 @@ export const listTransactions = async (req: AuthenticatedRequest, res: Response)
     if (tipo) where.tipo = tipo;
     if (status) where.status = status;
     if (categoria) where.categoria = categoria;
+    if (reservationId) where.reservationId = reservationId;
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = new Date(startDate as string);

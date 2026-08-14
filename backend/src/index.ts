@@ -24,16 +24,20 @@ export const prisma = new PrismaClient();
 const app = express();
 
 // CORS configuration
+// Aceita origens explicitas em ALLOWED_ORIGINS (CSV) e qualquer subdominio
+// *.easypanel.host (URLs temporarias do EasyPanel mudam com hash).
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:8080')
   .split(',')
   .map(origin => origin.trim());
+
+const EASYPANEL_PATTERN = /^https:\/\/[a-z0-9-]+\.[a-z0-9]+\.easypanel\.host$/i;
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*') || EASYPANEL_PATTERN.test(origin)) {
       return callback(null, true);
     }
 
