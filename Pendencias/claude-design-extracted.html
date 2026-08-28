@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="a70a5c51-8875-4475-8a03-db8dc14aa202"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>/* Organic — design-system tokens and component classes. This file is the source of truth for the system's look; retune it here and see readme.md. */
+/* latin-ext */
+@font-face {
+  font-family: 'Caprasimo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("855cd51a-a297-406d-bbcd-8c0d1c597b6c") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Caprasimo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("86ad1b72-cf8a-4776-9b7a-0a62119f578e") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("0ace8434-a53a-4ee3-8a10-e296f3ac6cc9") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("48c06434-6c16-4434-a3f2-203d3ebc719d") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("0ace8434-a53a-4ee3-8a10-e296f3ac6cc9") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("48c06434-6c16-4434-a3f2-203d3ebc719d") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("0ace8434-a53a-4ee3-8a10-e296f3ac6cc9") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("48c06434-6c16-4434-a3f2-203d3ebc719d") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
+:root {
+  --color-bg: #f5ead8;
+  --color-surface: #ebddc5;
+  --color-text: #201e1d;
+  --color-accent: #c67139;
+  --color-accent-2: #7a8a5e;
+  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+
+  /* Tonal ramps — generated in OKLCH on one shared lightness scale, so the
+     same step of any role matches the others in visual value. */
+  --color-neutral-100: #f9f4ed;
+  --color-neutral-200: #eee7db;
+  --color-neutral-300: #dcd3c4;
+  --color-neutral-400: #c0b6a5;
+  --color-neutral-500: #a19786;
+  --color-neutral-600: #82796a;
+  --color-neutral-700: #645c50;
+  --color-neutral-800: #474238;
+  --color-neutral-900: #2e2b25;
+
+  --color-accent-100: #fff2eb;
+  --color-accent-200: #ffe1d0;
+  --color-accent-300: #ffc6a5;
+  --color-accent-400: #f6a06b;
+  --color-accent-500: #d67f48;
+  --color-accent-600: #b2622d;
+  --color-accent-700: #8c491a;
+  --color-accent-800: #643312;
+  --color-accent-900: #402310;
+
+  --color-accent-2-100: #f0fae1;
+  --color-accent-2-200: #e1eecc;
+  --color-accent-2-300: #ccdbb2;
+  --color-accent-2-400: #aebf92;
+  --color-accent-2-500: #8fa073;
+  --color-accent-2-600: #728157;
+  --color-accent-2-700: #56633f;
+  --color-accent-2-800: #3d472b;
+  --color-accent-2-900: #272e1b;
+
+  --font-heading: "Caprasimo", system-ui, sans-serif;
+  --font-heading-weight: 400;
+  --font-body: "Figtree", system-ui, sans-serif;
+
+  --space-1: 4.4px;
+  --space-2: 8.8px;
+  --space-3: 13.2px;
+  --space-4: 17.6px;
+  --space-6: 26.4px;
+  --space-8: 35.2px;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+
+  /* Elevation — derived from the ground: soft ink-tinted shadows on a
+     light theme, a hairline edge + ambient darkness on a dark one. */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
+
+.washed{filter:saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Components — built with the tokens above. Plain CSS
+   on plain HTML: no JavaScript, no build step. Each class is documented in
+   readme.md and demonstrated in foundations/ and components/.
+   ══════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 400; }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
+}
+h1 { font-size: 42px; }
+h2 { font-size: 32px; }
+h3 { font-size: 25px; }
+h4 { font-size: 20px; }
+h5 { font-size: 16px; }
+h6 { font-size: 13px; }
+h6 { letter-spacing: 0.08em; text-transform: uppercase; }
+p { margin: 0 0 var(--space-3); }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+img { display: block; max-width: 100%; }
+figure { margin: 0; }
+figcaption {
+  font-size: 11px; margin-top: var(--space-1);
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+/* — rules — */
+.hr {
+  height: 1px; border: 0; margin: var(--space-4) 0;
+  background: var(--color-divider);
+}
+
+/* — buttons — */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 14px; line-height: 1.2; color: var(--color-text); /* matches the .input's 14px —
+     the pair sits side by side in sign-up rows */
+  background: transparent; border: 1px solid transparent;
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  border-radius: var(--radius-md);
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--color-accent); color: var(--color-bg); }
+.btn-primary:hover { background: var(--color-accent-600); }
+.btn-primary:active { background: var(--color-accent-700); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
+.btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-block { width: 100%; margin-top: var(--space-2); }
+
+/* — forms — */
+.field > label {
+  display: block; font-size: 12px; margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
+  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+textarea.input { min-height: 90px; resize: vertical; }
+.radio { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.radio input, .seg-opt input {
+  position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;
+}
+.radio .dot {
+  width: 16px; height: 16px; flex: none; border-radius: 50%;
+  border: 1.5px solid var(--color-divider);
+}
+.radio:hover .dot { border-color: var(--color-accent); }
+.radio input:checked + .dot {
+  border-color: var(--color-accent); background: var(--color-accent);
+  box-shadow: inset 0 0 0 4px var(--color-bg);
+}
+.radio input:focus-visible + .dot { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.seg {
+  display: inline-flex; overflow: hidden;
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.seg-opt {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; font-size: 13px; cursor: pointer;
+}
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
+.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* — cards — */
+.card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface);
+}
+.card-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); }
+.card-title {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 17px; line-height: 1.2;
+}
+.card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
+.card-meta {
+  display: flex; align-items: center; gap: 6px; font-size: 11px;
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+.elev-lg { box-shadow: var(--shadow-lg); }
+
+/* — tags — */
+.tag {
+  display: inline-flex; align-items: center; font-size: 11px;
+  letter-spacing: 0.02em; padding: 3px 10px;
+  border-radius: calc(var(--radius-md) * 0.75);
+}
+.tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
+.tag-accent-2 { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
+.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+
+/* — navigation — */
+.nav {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: none;
+}
+.nav-brand {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 18px; margin-right: auto;
+}
+.nav a { color: inherit; text-decoration: none; font-size: 14px; }
+.nav a:hover, .nav a[aria-current='page'] { color: var(--color-accent); }
+
+/* — tables — */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th {
+  text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  padding: var(--space-2); border-bottom: 1px solid var(--color-divider);
+}
+.table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+.table tbody tr:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+
+/* — dialog — */
+.dialog-backdrop {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+}
+.dialog {
+  width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3);
+  padding: var(--space-4); border-radius: var(--radius-lg);
+  background: var(--color-surface); box-shadow: var(--shadow-lg);
+}
+.dialog-title {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 20px;
+}
+.dialog-body { font-size: 14px; opacity: 0.85; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+
+/* — rounded frame: everything softens, small controls go pill — */
+.card, .dialog { border-radius: calc(var(--radius-lg) * 1.15); }
+.btn, .tag, .seg, .input { border-radius: 999px; }
+.input { padding-inline: 14px; }
+
+</style>
+<style>/* Organic retuned to the Pousada Algas Marinhas crest.
+   Ground, spacing, radii, shadows and components stay as Organic ships them
+   (ds/organic.css). Two changes, both requested: the accent roles are rebound
+   (accent = deep sea green, accent-2 = navy, gold as the crest's detail metal),
+   and the display voice is an inscriptional serif instead of Caprasimo, to echo
+   the carved lettering of the crest. Ramps regenerated in OKLCH on Organic's
+   shared lightness scale. */
+
+/* latin-ext */
+@font-face {
+  font-family: 'Marcellus';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("a48682ea-ca37-455e-9c48-5693b411f978") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Marcellus';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("821fba2d-4285-49d1-a0ab-ab57fbf84619") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
+:root {
+  --font-heading: "Marcellus", Georgia, serif;
+  --font-heading-weight: 400;
+
+  /* accent — verde-mar profundo */
+  --color-accent: #1f5d47;
+  --color-accent-100: #e8f2ec;
+  --color-accent-200: #cfe3d6;
+  --color-accent-300: #a9cbb7;
+  --color-accent-400: #72ab8d;
+  --color-accent-500: #3e8465;
+  --color-accent-600: #1a4f3c;
+  --color-accent-700: #14402f;
+  --color-accent-800: #0e2c21;
+  --color-accent-900: #091c15;
+
+  /* accent-2 — azul-marinho do brasão */
+  --color-accent-2: #143a72;
+  --color-accent-2-100: #e8eef8;
+  --color-accent-2-200: #cfdcf0;
+  --color-accent-2-300: #a7bfe0;
+  --color-accent-2-400: #6e94c8;
+  --color-accent-2-500: #3d6cab;
+  --color-accent-2-600: #1c4a89;
+  --color-accent-2-700: #143a72;
+  --color-accent-2-800: #0d2650;
+  --color-accent-2-900: #08182f;
+
+  /* dourado — detalhe, nunca fundo de texto pequeno */
+  --color-gold: #b8862b;
+  --color-gold-100: #faf0d8;
+  --color-gold-200: #f2e0b4;
+  --color-gold-300: #e6c987;
+  --color-gold-400: #d4ac52;
+  --color-gold-500: #b8862b;
+  --color-gold-700: #8a621d;
+
+  /* superfícies escuras — o brasão invertido */
+  --color-ink: #0b1c3a;
+  --color-ink-soft: #112a52;
+}
+</style>
+<script src="0205a812-d31a-426b-bd77-68ef0302fea2"></script>
+<style>
+  body { margin: 0; background: var(--color-bg); }
+  a { color: var(--color-accent-700); text-decoration: none; }
+  a:hover { color: var(--color-accent); }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);overflow-x:hidden">
+
+  <header style="position:relative;z-index:30;display:flex;flex-wrap:wrap;align-items:center;gap:26.4px;max-width:1240px;margin:0 auto;padding:20px 40px">
+    <a href="#topo" style="display:flex;align-items:center;gap:12px;margin-right:auto;color:inherit">
+      <img src="4ab6528e-078a-4f3c-b367-8a31c5d2f28d" alt="Brasão da Pousada Algas Marinhas" style="width:44px;height:44px;border-radius:999px;object-fit:cover">
+      <span style="display:flex;flex-direction:column;line-height:1.15">
+        <span style="font-family:var(--font-heading);font-size:18px;letter-spacing:0.01em">Pousada Algas Marinhas</span>
+        <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Praia do Forte · Bahia</span>
+      </span>
+    </a>
+    <a href="#sobre" style="font-size:14px;color:var(--color-neutral-800)" style-hover="color:var(--color-accent)">Sobre</a>
+    <a href="#quartos" style="font-size:14px;color:var(--color-neutral-800)" style-hover="color:var(--color-accent)">Quartos</a>
+    <a href="#gastronomia" style="font-size:14px;color:var(--color-neutral-800)" style-hover="color:var(--color-accent)">Gastronomia</a>
+    <a href="#localizacao" style="font-size:14px;color:var(--color-neutral-800)" style-hover="color:var(--color-accent)">Localização</a>
+    <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:999px;background:var(--color-accent);color:var(--color-bg);font-family:var(--font-heading);font-size:14px;letter-spacing:0.02em;box-shadow:var(--shadow-sm)" style-hover="background:var(--color-accent-600)">Reservar agora</a>
+  </header>
+
+  <section id="topo" style="max-width:1240px;margin:0 auto;padding:8px 40px 0">
+    <div style="position:relative;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;height:min(80vh,700px);min-height:520px;background:var(--color-ink);color:#f2ece1;animation:riseIn .8s cubic-bezier(.22,1,.36,1) both">
+      <image-slot id="algas-hero" shape="rect" fit="cover" placeholder="foto · a vila ao pôr do sol, o mar ou a fachada da pousada" style="position:relative;z-index:1"></image-slot>
+      <div style="position:absolute;inset:0;z-index:3;display:flex;align-items:center;pointer-events:none">
+        <div style="margin:0 clamp(18px,3.4vw,44px);max-width:700px;padding:clamp(28px,3.4vw,50px);border-radius:calc(var(--radius-lg) * 1.15);background:linear-gradient(155deg,rgba(11,28,58,.93) 0%,rgba(11,28,58,.8) 100%);backdrop-filter:blur(4px)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+            <span style="width:34px;height:1px;background:var(--color-gold-400)"></span>
+            <span style="width:6px;height:6px;background:var(--color-gold-400);transform:rotate(45deg)"></span>
+            <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-300)">Tranquilidade e liberdade</span>
+          </div>
+          <h1 style="font-family:var(--font-heading);font-size:clamp(40px,5.6vw,74px);line-height:1.06;letter-spacing:0.004em;color:#fdf8ee;margin:0 0 24px">A dois passos do mar,<br>no coração da Vila.</h1>
+          <p style="font-size:clamp(16px,1.4vw,19px);line-height:1.6;color:#e3ebf6;margin:0 0 34px;max-width:54ch;text-wrap:pretty">No Beco Dona Nita, 22 — virando a esquina do Projeto Tamar e da Praça dos Artistas. A Praia do Porto, os restaurantes e o mercado da vila ficam todos a pé.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;pointer-events:auto">
+            <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;padding:16px 32px;border-radius:999px;background:var(--color-gold-400);color:var(--color-ink);font-family:var(--font-heading);font-size:17px;letter-spacing:0.02em;box-shadow:var(--shadow-md)" style-hover="background:var(--color-gold-300)">
+              Reservar agora
+              <span style="width:17px;height:17px;background:currentColor;-webkit-mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat;mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat"></span>
+            </a>
+            <a href="#quartos" style="display:inline-flex;align-items:center;padding:16px 32px;border-radius:999px;border:1px solid rgba(253,248,238,.42);color:#fdf8ee;font-family:var(--font-heading);font-size:17px;letter-spacing:0.02em" style-hover="background:rgba(253,248,238,.12)">Ver os quartos</a>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ mostrarDicaFoto }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;z-index:4;top:clamp(16px,2.6vw,30px);right:clamp(16px,3vw,40px);pointer-events:none;display:flex;align-items:center;gap:9px;padding:10px 18px;border-radius:999px;background:rgba(253,248,238,.92);color:var(--color-ink);font-size:12.5px;box-shadow:var(--shadow-md)">
+          <span style="width:15px;height:15px;flex:none;background:var(--color-accent);-webkit-mask:url(&quot;79c7cdbb-6598-4c26-b907-34c15200e006&quot;) center/contain no-repeat;mask:url(&quot;79c7cdbb-6598-4c26-b907-34c15200e006&quot;) center/contain no-repeat"></span>
+          Arraste a foto do hero aqui
+        </div>
+      </sc-if>
+      <sc-if value="{{ brasaoNoHero }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;z-index:3;right:clamp(20px,4vw,52px);bottom:clamp(20px,4vw,52px);pointer-events:none;width:clamp(110px,13vw,168px);height:clamp(110px,13vw,168px);border-radius:999px;overflow:hidden;border:3px solid rgba(226,192,122,.5);box-shadow:var(--shadow-lg)">
+          <img src="4ab6528e-078a-4f3c-b367-8a31c5d2f28d" alt="Brasão da Pousada Algas Marinhas" style="width:100%;height:100%;object-fit:cover">
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:22px 4px 0">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 20px 10px 12px;border-radius:999px;background:var(--color-surface)">
+        <span style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:var(--color-accent-2);color:#fff;font-family:var(--font-heading);font-size:15px">8,0</span>
+        <span style="font-size:13.5px;color:var(--color-neutral-800)"><strong style="font-weight:700;color:var(--color-neutral-900)">Muito bom</strong> · 834 avaliações no Booking.com</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;padding:12px 20px;border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-700);font-size:13.5px">
+        <span style="width:15px;height:15px;background:currentColor;-webkit-mask:url(&quot;e6b3160f-d605-45f4-9606-e96231ac8b7c&quot;) center/contain no-repeat;mask:url(&quot;e6b3160f-d605-45f4-9606-e96231ac8b7c&quot;) center/contain no-repeat"></span>
+        Localização 9,5/10
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;padding:12px 20px;border-radius:999px;background:var(--color-gold-100);color:var(--color-gold-700);font-size:13.5px">
+        <span style="width:15px;height:15px;background:currentColor;-webkit-mask:url(&quot;1f0bc21a-5c31-4a13-8adc-05894fc92c79&quot;) center/contain no-repeat;mask:url(&quot;1f0bc21a-5c31-4a13-8adc-05894fc92c79&quot;) center/contain no-repeat"></span>
+        Casais 9,4/10
+      </div>
+    </div>
+  </section>
+
+  <section id="sobre" style="max-width:1240px;margin:0 auto;padding:96px 40px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:64px;align-items:center">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <span style="width:34px;height:1px;background:var(--color-gold-400)"></span>
+          <span style="width:6px;height:6px;background:var(--color-gold-500);transform:rotate(45deg)"></span>
+          <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-700)">A casa</span>
+        </div>
+        <h2 style="font-size:clamp(32px,3.8vw,50px);line-height:1.1;letter-spacing:0.002em;margin:0 0 24px">Uma pousada onde a dona recebe você pessoalmente.</h2>
+        <p style="font-size:18px;line-height:1.65;color:var(--color-neutral-800);margin:0 0 18px;text-wrap:pretty">A hospitalidade pessoal da proprietária é a marca registrada da Algas Marinhas — e é o que mais aparece nas avaliações de quem se hospeda. Em 834 opiniões no Booking.com, a mesma frase se repete: a sensação de estar em casa.</p>
+        <p style="font-size:18px;line-height:1.65;color:var(--color-neutral-800);margin:0 0 30px;text-wrap:pretty">A pousada fica dentro da Vila de Praia do Forte, no litoral norte da Bahia, onde as ruas de pedra levam a pé até a praia, os restaurantes e o santuário das tartarugas.</p>
+        <blockquote style="margin:0;padding:24px 28px;border-radius:calc(var(--radius-lg) * 1.15);background:var(--color-gold-100)">
+          <p style="font-family:var(--font-heading);font-size:21px;line-height:1.35;color:var(--color-neutral-900);margin:0">“a dona da pousada muito simpática e nos fez sentir em casa”</p>
+          <p style="font-size:12.5px;color:var(--color-gold-700);margin:12px 0 0">Avaliação no Booking.com</p>
+        </blockquote>
+      </div>
+      <div style="position:relative">
+        <div style="border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;height:clamp(380px,44vw,560px);background:var(--color-surface);box-shadow:var(--shadow-md)">
+          <image-slot id="algas-sobre" shape="rect" fit="cover" placeholder="foto · varanda, sala ou pátio da pousada"></image-slot>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ mostrarSelos }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:56px">
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;border-radius:999px;background:var(--color-surface)">
+          <span style="width:20px;height:20px;flex:none;background:var(--color-accent);-webkit-mask:url(&quot;05fca482-a194-4c10-aad7-d82622e19f74&quot;) center/contain no-repeat;mask:url(&quot;05fca482-a194-4c10-aad7-d82622e19f74&quot;) center/contain no-repeat"></span>
+          <span style="font-size:14px;color:var(--color-neutral-800)">Pets bem-vindos, sem custo adicional</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;border-radius:999px;background:var(--color-surface)">
+          <span style="width:20px;height:20px;flex:none;background:var(--color-accent);-webkit-mask:url(&quot;9223e1f4-6ba2-4594-bde3-4bef813ef6d8&quot;) center/contain no-repeat;mask:url(&quot;9223e1f4-6ba2-4594-bde3-4bef813ef6d8&quot;) center/contain no-repeat"></span>
+          <span style="font-size:14px;color:var(--color-neutral-800)">Check-in das 14h às 22h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;border-radius:999px;background:var(--color-surface)">
+          <span style="width:20px;height:20px;flex:none;background:var(--color-accent);-webkit-mask:url(&quot;ee910340-7b1a-443b-8791-32419959798c&quot;) center/contain no-repeat;mask:url(&quot;ee910340-7b1a-443b-8791-32419959798c&quot;) center/contain no-repeat"></span>
+          <span style="font-size:14px;color:var(--color-neutral-800)">Check-out até as 12h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;border-radius:999px;background:var(--color-surface)">
+          <span style="width:20px;height:20px;flex:none;background:var(--color-accent);-webkit-mask:url(&quot;c34ade7f-e3b5-4ca6-a4c8-6850634191b7&quot;) center/contain no-repeat;mask:url(&quot;c34ade7f-e3b5-4ca6-a4c8-6850634191b7&quot;) center/contain no-repeat"></span>
+          <span style="font-size:14px;color:var(--color-neutral-800)">WiFi avaliado 8,7/10</span>
+        </div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section id="quartos" style="background:var(--color-surface);padding:96px 0">
+    <div style="max-width:1240px;margin:0 auto;padding:0 40px">
+      <div style="max-width:60ch;margin-bottom:52px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <span style="width:34px;height:1px;background:var(--color-gold-500)"></span>
+          <span style="width:6px;height:6px;background:var(--color-gold-500);transform:rotate(45deg)"></span>
+          <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-700)">Acomodações</span>
+        </div>
+        <h2 style="font-size:clamp(32px,3.8vw,50px);line-height:1.1;margin:0 0 20px">Quatro tipos de quarto.</h2>
+        <p style="font-size:18px;line-height:1.65;color:var(--color-neutral-800);margin:0;text-wrap:pretty">Para o casal em viagem a dois ou para a família inteira. Datas, tarifas e disponibilidade atualizadas no Booking.com.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:20px">
+        <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:flex;flex-direction:column;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;background:var(--color-bg);color:inherit;box-shadow:var(--shadow-sm)" style-hover="box-shadow:var(--shadow-lg)">
+          <div style="height:200px;background:var(--color-surface)">
+            <image-slot id="algas-quarto-duplo" shape="rect" fit="cover" placeholder="foto · Quarto Duplo"></image-slot>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;padding:26px">
+            <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Até 2 hóspedes</span>
+            <h3 style="font-size:25px;line-height:1.15;margin:0">Duplo</h3>
+            <p style="font-size:15px;line-height:1.6;color:var(--color-neutral-800);margin:0;flex:1">Para duas pessoas, com o essencial bem resolvido — a poucos metros da Praia do Porto.</p>
+            <span style="display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--color-accent-700);margin-top:4px">
+              Ver disponibilidade
+              <span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat;mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat"></span>
+            </span>
+          </div>
+        </a>
+        <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:flex;flex-direction:column;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;background:var(--color-bg);color:inherit;box-shadow:var(--shadow-sm)" style-hover="box-shadow:var(--shadow-lg)">
+          <div style="height:200px;background:var(--color-surface)">
+            <image-slot id="algas-quarto-duplo-amplo" shape="rect" fit="cover" placeholder="foto · Quarto Duplo Amplo"></image-slot>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;padding:26px">
+            <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Até 2 hóspedes</span>
+            <h3 style="font-size:25px;line-height:1.15;margin:0">Duplo Amplo</h3>
+            <p style="font-size:15px;line-height:1.6;color:var(--color-neutral-800);margin:0;flex:1">O mesmo conforto do Duplo, com mais espaço para circular. Bom para estadias mais longas.</p>
+            <span style="display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--color-accent-700);margin-top:4px">
+              Ver disponibilidade
+              <span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat;mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat"></span>
+            </span>
+          </div>
+        </a>
+        <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:flex;flex-direction:column;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;background:var(--color-bg);color:inherit;box-shadow:var(--shadow-sm)" style-hover="box-shadow:var(--shadow-lg)">
+          <div style="height:200px;background:var(--color-surface)">
+            <image-slot id="algas-quarto-triplo" shape="rect" fit="cover" placeholder="foto · Quarto Triplo"></image-slot>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;padding:26px">
+            <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Até 3 hóspedes</span>
+            <h3 style="font-size:25px;line-height:1.15;margin:0">Triplo</h3>
+            <p style="font-size:15px;line-height:1.6;color:var(--color-neutral-800);margin:0;flex:1">Três hóspedes acomodados sem aperto — útil para amigos ou para uma família pequena.</p>
+            <span style="display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--color-accent-700);margin-top:4px">
+              Ver disponibilidade
+              <span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat;mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat"></span>
+            </span>
+          </div>
+        </a>
+        <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:flex;flex-direction:column;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;background:var(--color-bg);color:inherit;box-shadow:var(--shadow-sm)" style-hover="box-shadow:var(--shadow-lg)">
+          <div style="height:200px;background:var(--color-surface)">
+            <image-slot id="algas-quarto-quadruplo" shape="rect" fit="cover" placeholder="foto · Quarto Quádruplo"></image-slot>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;padding:26px">
+            <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Até 4 hóspedes</span>
+            <h3 style="font-size:25px;line-height:1.15;margin:0">Quádruplo</h3>
+            <p style="font-size:15px;line-height:1.6;color:var(--color-neutral-800);margin:0;flex:1">Quatro pessoas no mesmo quarto, no coração da vila — a família toda a pé da praia.</p>
+            <span style="display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--color-accent-700);margin-top:4px">
+              Ver disponibilidade
+              <span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat;mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat"></span>
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="gastronomia" style="max-width:1240px;margin:0 auto;padding:96px 40px">
+    <div style="max-width:60ch;margin-bottom:52px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+        <span style="width:34px;height:1px;background:var(--color-gold-400)"></span>
+        <span style="width:6px;height:6px;background:var(--color-gold-500);transform:rotate(45deg)"></span>
+        <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-700)">Onde comer</span>
+      </div>
+      <h2 style="font-size:clamp(32px,3.8vw,50px);line-height:1.1;margin:0 0 20px">Café da manhã em buffet e cozinha italiana ao lado.</h2>
+      <p style="font-size:18px;line-height:1.65;color:var(--color-neutral-800);margin:0;text-wrap:pretty">O dia começa com o buffet servido na pousada. E na hora do almoço ou do jantar, o Il Cantuccio fica colado com a gente — sem precisar pegar a rua.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px">
+      <div style="display:flex;flex-direction:column;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;background:var(--color-surface)">
+        <div style="height:clamp(240px,26vw,320px)">
+          <image-slot id="algas-cafe" shape="rect" fit="cover" placeholder="foto · buffet do café da manhã"></image-slot>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;padding:32px">
+          <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Na pousada</span>
+          <h3 style="font-size:29px;line-height:1.15;margin:0">Café Algas Marinhas</h3>
+          <p style="font-size:16px;line-height:1.65;color:var(--color-neutral-800);margin:0">O buffet de café da manhã é um dos pontos mais elogiados da pousada. Ambiente familiar e tradicional, servido no próprio endereço para começar o dia antes da caminhada até a praia.</p>
+          <p style="font-family:var(--font-heading);font-size:19px;line-height:1.35;color:var(--color-accent-700);margin:8px 0 0">“café da manhã completíssimo”</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;background:var(--color-surface)">
+        <div style="height:clamp(240px,26vw,320px)">
+          <image-slot id="algas-cantuccio" shape="rect" fit="cover" placeholder="foto · salão do Il Cantuccio"></image-slot>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;padding:32px">
+          <span style="font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-gold-700)">Cozinha italiana · restaurante parceiro</span>
+          <h3 style="font-size:29px;line-height:1.15;margin:0">Il Cantuccio</h3>
+          <p style="font-size:16px;line-height:1.65;color:var(--color-neutral-800);margin:0">Restaurante parceiro, colado com a pousada: almoço, jantar e happy hour a poucos passos do quarto. Ambiente familiar durante o dia e romântico à noite — sem precisar pegar a rua depois do jantar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="localizacao" style="background:var(--color-ink);color:#f2ece1;padding:96px 0;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-160px;top:-140px;width:520px;height:520px;border-radius:999px;background:var(--color-accent-2-800)"></div>
+    <div style="position:relative;max-width:1240px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:64px;align-items:center">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <span style="width:34px;height:1px;background:var(--color-gold-400)"></span>
+          <span style="width:6px;height:6px;background:var(--color-gold-400);transform:rotate(45deg)"></span>
+          <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-300)">A pé</span>
+        </div>
+        <h2 style="font-size:clamp(32px,3.8vw,50px);line-height:1.1;margin:0 0 24px;color:#fdf8ee">Tudo acontece na esquina.</h2>
+        <p style="font-size:18px;line-height:1.65;color:var(--color-accent-2-300);margin:0 0 34px;max-width:48ch;text-wrap:pretty">A Algas Marinhas fica no Beco Dona Nita, 22, dentro da Vila de Praia do Forte. Daqui, você não precisa de carro.</p>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--color-accent-2-800)">
+            <span style="width:22px;height:22px;flex:none;margin-top:2px;background:var(--color-gold-300);-webkit-mask:url(&quot;b5a1ecfe-5751-4bb9-97ed-6195200ad47d&quot;) center/contain no-repeat;mask:url(&quot;b5a1ecfe-5751-4bb9-97ed-6195200ad47d&quot;) center/contain no-repeat"></span>
+            <div>
+              <div style="font-family:var(--font-heading);font-size:21px;color:#fdf8ee">Praia do Porto</div>
+              <div style="font-size:14.5px;color:var(--color-accent-2-300);margin-top:4px">A poucos passos da pousada — piscinas naturais na maré baixa.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--color-accent-2-800)">
+            <span style="width:22px;height:22px;flex:none;margin-top:2px;background:var(--color-gold-300);-webkit-mask:url(&quot;5d6dde6a-c75a-426d-9f63-3c7e05b9dfb4&quot;) center/contain no-repeat;mask:url(&quot;5d6dde6a-c75a-426d-9f63-3c7e05b9dfb4&quot;) center/contain no-repeat"></span>
+            <div>
+              <div style="font-family:var(--font-heading);font-size:21px;color:#fdf8ee">Projeto Tamar</div>
+              <div style="font-size:14.5px;color:var(--color-accent-2-300);margin-top:4px">Virando a esquina: o santuário de tartarugas marinhas, um dos pontos turísticos mais visitados do litoral baiano.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--color-accent-2-800)">
+            <span style="width:22px;height:22px;flex:none;margin-top:2px;background:var(--color-gold-300);-webkit-mask:url(&quot;703df417-1b97-4624-9b8e-dae3bf219327&quot;) center/contain no-repeat;mask:url(&quot;703df417-1b97-4624-9b8e-dae3bf219327&quot;) center/contain no-repeat"></span>
+            <div>
+              <div style="font-family:var(--font-heading);font-size:21px;color:#fdf8ee">Praça dos Artistas</div>
+              <div style="font-size:14.5px;color:var(--color-accent-2-300);margin-top:4px">Ao lado, no centro da vila.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--color-accent-2-800);border-bottom:1px solid var(--color-accent-2-800)">
+            <span style="width:22px;height:22px;flex:none;margin-top:2px;background:var(--color-gold-300);-webkit-mask:url(&quot;e6b3160f-d605-45f4-9606-e96231ac8b7c&quot;) center/contain no-repeat;mask:url(&quot;e6b3160f-d605-45f4-9606-e96231ac8b7c&quot;) center/contain no-repeat"></span>
+            <div>
+              <div style="font-family:var(--font-heading);font-size:21px;color:#fdf8ee">A vila inteira</div>
+              <div style="font-size:14.5px;color:var(--color-accent-2-300);margin-top:4px">Restaurantes, igreja e mercado, todos a pé pelas ruas de pedra.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="border-radius:calc(var(--radius-lg) * 1.15);overflow:hidden;height:clamp(380px,46vw,580px);background:var(--color-accent-2-800);box-shadow:var(--shadow-lg)">
+          <image-slot id="algas-vila" shape="rect" fit="cover" placeholder="foto · rua de pedra da vila, a praia ou o Projeto Tamar"></image-slot>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:20px;font-size:14px;color:var(--color-accent-2-300)">
+          <span style="width:16px;height:16px;flex:none;background:var(--color-gold-300);-webkit-mask:url(&quot;e6b3160f-d605-45f4-9606-e96231ac8b7c&quot;) center/contain no-repeat;mask:url(&quot;e6b3160f-d605-45f4-9606-e96231ac8b7c&quot;) center/contain no-repeat"></span>
+          Beco Dona Nita, 22 · Vila de Praia do Forte · Bahia
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width:1240px;margin:0 auto;padding:96px 40px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:56px;align-items:start">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <span style="width:34px;height:1px;background:var(--color-gold-400)"></span>
+          <span style="width:6px;height:6px;background:var(--color-gold-500);transform:rotate(45deg)"></span>
+          <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-700)">Avaliações</span>
+        </div>
+        <h2 style="font-size:clamp(32px,3.8vw,50px);line-height:1.1;margin:0 0 24px">O que dizem os hóspedes.</h2>
+        <div style="display:flex;align-items:center;gap:24px;padding:26px 30px;border-radius:calc(var(--radius-lg) * 1.15);background:var(--color-ink);color:#f2ece1;margin-bottom:22px">
+          <div style="font-family:var(--font-heading);font-size:54px;line-height:1;color:var(--color-gold-300)">8,0</div>
+          <div style="width:1px;height:54px;background:var(--color-accent-2-700)"></div>
+          <div>
+            <div style="font-family:var(--font-heading);font-size:21px">Muito bom</div>
+            <div style="font-size:13.5px;color:var(--color-accent-2-300);margin-top:4px">834 avaliações no Booking.com</div>
+          </div>
+        </div>
+        <sc-if value="{{ mostrarNotas }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px"><span style="font-size:14.5px;color:var(--color-neutral-800)">Localização</span><span style="font-family:var(--font-heading);font-size:19px;color:var(--color-accent)">9,5</span></div>
+              <div style="height:6px;border-radius:999px;background:var(--color-accent-200)"><div style="width:95%;height:100%;border-radius:999px;background:var(--color-accent)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px"><span style="font-size:14.5px;color:var(--color-neutral-800)">Casais</span><span style="font-family:var(--font-heading);font-size:19px;color:var(--color-accent)">9,4</span></div>
+              <div style="height:6px;border-radius:999px;background:var(--color-accent-200)"><div style="width:94%;height:100%;border-radius:999px;background:var(--color-accent)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px"><span style="font-size:14.5px;color:var(--color-neutral-800)">Funcionários</span><span style="font-family:var(--font-heading);font-size:19px;color:var(--color-accent-2)">8,9</span></div>
+              <div style="height:6px;border-radius:999px;background:var(--color-accent-2-200)"><div style="width:89%;height:100%;border-radius:999px;background:var(--color-accent-2)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px"><span style="font-size:14.5px;color:var(--color-neutral-800)">WiFi</span><span style="font-family:var(--font-heading);font-size:19px;color:var(--color-accent-2)">8,7</span></div>
+              <div style="height:6px;border-radius:999px;background:var(--color-accent-2-200)"><div style="width:87%;height:100%;border-radius:999px;background:var(--color-accent-2)"></div></div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">
+        <blockquote style="margin:0;padding:26px;border-radius:calc(var(--radius-lg) * 1.15);background:var(--color-gold-100)">
+          <p style="font-family:var(--font-heading);font-size:19px;line-height:1.4;color:var(--color-neutral-900);margin:0">“a dona da pousada muito simpática e nos fez sentir em casa”</p>
+        </blockquote>
+        <blockquote style="margin:0;padding:26px;border-radius:calc(var(--radius-lg) * 1.15);background:var(--color-accent-100)">
+          <p style="font-family:var(--font-heading);font-size:19px;line-height:1.4;color:var(--color-accent-800);margin:0">“café da manhã completíssimo”</p>
+        </blockquote>
+        <blockquote style="margin:0;padding:26px;border-radius:calc(var(--radius-lg) * 1.15);background:var(--color-accent-2-100)">
+          <p style="font-family:var(--font-heading);font-size:19px;line-height:1.4;color:var(--color-accent-2-800);margin:0">“localização muito privilegiada”</p>
+        </blockquote>
+        <blockquote style="margin:0;padding:26px;border-radius:calc(var(--radius-lg) * 1.15);background:var(--color-surface)">
+          <p style="font-family:var(--font-heading);font-size:19px;line-height:1.4;color:var(--color-neutral-900);margin:0">“nos sentimos em casa”</p>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--color-ink);color:#f2ece1;padding:100px 0;position:relative;overflow:hidden">
+    <div style="position:absolute;left:-180px;bottom:-200px;width:520px;height:520px;border-radius:999px;background:var(--color-accent-2-800)"></div>
+    <div style="position:relative;max-width:1240px;margin:0 auto;padding:0 40px;display:flex;flex-wrap:wrap;align-items:center;gap:56px">
+      <div style="flex:1 1 420px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+          <span style="width:34px;height:1px;background:var(--color-gold-400)"></span>
+          <span style="width:6px;height:6px;background:var(--color-gold-400);transform:rotate(45deg)"></span>
+          <span style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold-300)">Tranquilidade e liberdade</span>
+        </div>
+        <h2 style="font-size:clamp(34px,4.4vw,58px);line-height:1.06;margin:0 0 22px;color:#fdf8ee">Sua estadia em Praia do Forte começa aqui.</h2>
+        <p style="font-size:18px;line-height:1.65;color:var(--color-accent-2-300);margin:0 0 36px;max-width:46ch;text-wrap:pretty">Consulte datas, tarifas e disponibilidade no Booking.com e garanta o seu quarto na vila.</p>
+        <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;padding:18px 36px;border-radius:999px;background:var(--color-gold-400);color:var(--color-ink);font-family:var(--font-heading);font-size:18px;letter-spacing:0.02em;box-shadow:var(--shadow-md)" style-hover="background:var(--color-gold-300)">
+          Reservar agora
+          <span style="width:18px;height:18px;background:currentColor;-webkit-mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat;mask:url(&quot;4371d548-bb81-42d2-b1d2-83effddb5dc4&quot;) center/contain no-repeat"></span>
+        </a>
+      </div>
+      <div style="flex:0 1 300px;display:grid;place-items:center">
+        <img src="4ab6528e-078a-4f3c-b367-8a31c5d2f28d" alt="Brasão da Pousada Algas Marinhas" style="width:clamp(200px,24vw,300px);height:clamp(200px,24vw,300px);border-radius:999px;object-fit:cover;border:4px solid rgba(226,192,122,.45);box-shadow:var(--shadow-lg)">
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:var(--color-bg);padding:60px 0 44px">
+    <div style="max-width:1240px;margin:0 auto;padding:0 40px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:40px;padding-bottom:36px;border-bottom:1px solid var(--color-divider)">
+        <div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <img src="4ab6528e-078a-4f3c-b367-8a31c5d2f28d" alt="Brasão da Pousada Algas Marinhas" style="width:44px;height:44px;border-radius:999px;object-fit:cover">
+            <span style="font-family:var(--font-heading);font-size:18px">Pousada Algas Marinhas</span>
+          </div>
+          <p style="font-size:14px;line-height:1.6;color:var(--color-neutral-800);margin:0;max-width:30ch">No coração da Vila de Praia do Forte, litoral norte da Bahia.</p>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-gold-700);margin-bottom:14px">Endereço</div>
+          <p style="font-size:14px;line-height:1.7;color:var(--color-neutral-800);margin:0">Beco Dona Nita, 22<br>Vila de Praia do Forte<br>Bahia · Brasil</p>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-gold-700);margin-bottom:14px">Horários</div>
+          <p style="font-size:14px;line-height:1.7;color:var(--color-neutral-800);margin:0">Check-in 14h – 22h<br>Check-out até 12h<br>Pets bem-vindos</p>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-gold-700);margin-bottom:14px">Reservas</div>
+          <div style="display:flex;flex-direction:column;gap:9px;font-size:14px">
+            <a href="https://www.booking.com/hotel/br/pousada-bar-cafe-algas-marinhas.pt-br.html" target="_blank" rel="noopener">Reservar no Booking.com</a>
+            <a href="#quartos">Tipos de quarto</a>
+            <a href="#gastronomia">Café da manhã e restaurante</a>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding-top:26px">
+        <p style="font-size:13px;color:var(--color-neutral-700);margin:0">© 2026 Pousada Algas Marinhas · Praia do Forte, Bahia</p>
+        <p style="font-size:13px;color:var(--color-gold-700);margin:0;letter-spacing:0.1em;text-transform:uppercase">Tranquilidade e liberdade</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{
+  &quot;brasaoNoHero&quot;: {
+    &quot;editor&quot;: &quot;boolean&quot;,
+    &quot;default&quot;: true,
+    &quot;tsType&quot;: &quot;boolean&quot;,
+    &quot;section&quot;: &quot;Hero&quot;
+  },
+  &quot;mostrarDicaFoto&quot;: {
+    &quot;editor&quot;: &quot;boolean&quot;,
+    &quot;default&quot;: true,
+    &quot;tsType&quot;: &quot;boolean&quot;,
+    &quot;section&quot;: &quot;Hero&quot;
+  },
+  &quot;mostrarSelos&quot;: {
+    &quot;editor&quot;: &quot;boolean&quot;,
+    &quot;default&quot;: true,
+    &quot;tsType&quot;: &quot;boolean&quot;,
+    &quot;section&quot;: &quot;Seções&quot;
+  },
+  &quot;mostrarNotas&quot;: {
+    &quot;editor&quot;: &quot;boolean&quot;,
+    &quot;default&quot;: true,
+    &quot;tsType&quot;: &quot;boolean&quot;,
+    &quot;section&quot;: &quot;Seções&quot;
+  }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      brasaoNoHero: this.props.brasaoNoHero ?? true,
+      mostrarDicaFoto: this.props.mostrarDicaFoto ?? true,
+      mostrarSelos: this.props.mostrarSelos ?? true,
+      mostrarNotas: this.props.mostrarNotas ?? true
+    };
+  }
+}
+</script>
+
+
+<div id="__claude_design_branding"><style>#__claude_design_branding{position:fixed;right:16px;bottom:16px;z-index:2147483646;display:flex;align-items:center;gap:7px;height:30px;padding:0 5px 0 10px;border-radius:999px;font-family:"Anthropic Sans",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12.5px;font-weight:400;line-height:1;letter-spacing:normal;text-transform:none;color:#141413;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);box-shadow:0 0 0 .5px rgba(31,30,29,.14),0 2px 10px rgba(0,0,0,.09)}
+#__claude_design_branding *{box-sizing:border-box;margin:0}
+#__claude_design_branding a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+#__claude_design_branding a:hover span{text-decoration:underline}
+#__claude_design_branding svg{flex:none}
+#__claude_design_branding a svg{color:#D97757}
+#__claude_design_branding button{width:20px;height:20px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:currentColor;opacity:.55;border:0;background:none;cursor:pointer;flex:none;font:inherit;transition:opacity .14s}
+#__claude_design_branding button:hover{opacity:1;background:rgba(127,127,127,.22)}
+@media print{#__claude_design_branding{display:none}}</style><a href="https://claude.com/product/design" target="_blank" rel="noopener noreferrer"><svg width="14" height="14" viewBox="0 0 20 21" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.99902 0C15.5258 0.000170936 19.999 4.50643 19.999 10.0547C19.999 11.7656 19.5863 12.9976 18.7861 13.8203C17.9924 14.6362 16.9465 14.9138 15.9854 15.0078C15.05 15.0993 14.0097 15.0262 13.2549 15.0186C12.8524 15.0145 12.5177 15.0267 12.2441 15.0703C11.9682 15.1144 11.8143 15.1813 11.7305 15.2432C11.4745 15.4322 11.3353 15.7121 11.2656 16.1602C11.2303 16.3875 11.2168 16.6362 11.209 16.9131C11.2017 17.1715 11.1986 17.4893 11.1807 17.7705C11.1469 18.2975 11.0495 19.0865 10.4199 19.5908C9.7846 20.0996 8.88652 20.1057 7.85449 19.877C7.36399 19.7682 6.88652 19.6232 6.42578 19.4453C2.66989 17.9949 0.000187748 14.3414 0 10.0547C0 4.50643 4.47223 0.000171048 9.99902 0ZM9.99902 1.60547C5.36781 1.60564 1.60547 5.38391 1.60547 10.0547C1.60566 13.6582 3.84823 16.7296 7.00391 17.9482C7.39027 18.0974 7.79085 18.2184 8.20215 18.3096C9.1375 18.5169 9.384 18.3633 9.41602 18.3379C9.4524 18.3087 9.54558 18.1915 9.5791 17.668C9.5947 17.4239 9.59473 17.1786 9.60352 16.8672C9.61179 16.5742 9.62831 16.2435 9.67969 15.9131C9.78359 15.2455 10.0474 14.4906 10.7764 13.9521C11.1479 13.6778 11.5842 13.5493 11.9912 13.4844C12.4007 13.4191 12.8434 13.4088 13.2705 13.4131C14.1753 13.4222 15.0071 13.4905 15.8291 13.4102C16.6257 13.3322 17.2249 13.1235 17.6357 12.7012C18.0401 12.2855 18.3935 11.5261 18.3936 10.0547C18.3936 5.38391 14.6302 1.60564 9.99902 1.60547ZM5.11621 9.86719C5.86386 9.91468 6.45486 10.5348 6.45508 11.2939C6.45506 12.0838 5.81519 12.7245 5.02539 12.7246C4.28481 12.7246 3.67573 12.1617 3.60254 11.4404L3.59473 11.2939L3.60156 11.1533C3.66942 10.4596 4.23282 9.91186 4.93359 9.86719H5.11621ZM14.9814 7.19141C15.729 7.23889 16.3199 7.85919 16.3203 8.61816C16.3203 9.40801 15.6804 10.0487 14.8906 10.0488C14.1501 10.0487 13.5409 9.48586 13.4678 8.76465L13.46 8.61816L13.4668 8.47754C13.5348 7.78403 14.0983 7.23618 14.7988 7.19141H14.9814ZM6.4541 4.93457C7.20161 4.9822 7.79275 5.60231 7.79297 6.36133C7.79288 7.151 7.15291 7.7917 6.36328 7.79199C5.62274 7.79199 5.01369 7.22903 4.94043 6.50781L4.93262 6.36133L4.93945 6.2207C5.00731 5.52698 5.5707 4.97922 6.27148 4.93457H6.4541ZM11.3867 3.59668C12.1343 3.64419 12.7253 4.26436 12.7256 5.02344C12.7256 5.81326 12.0857 6.45393 11.2959 6.4541C10.5553 6.4541 9.94622 5.89123 9.87305 5.16992L9.86523 5.02344L9.87207 4.88281C9.93996 4.18912 10.5033 3.64133 11.2041 3.59668H11.3867Z"></path></svg><span>Made with Claude Design</span></a><button type="button" aria-label="Dismiss" onclick="this.parentElement.remove()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button></div></body></html>

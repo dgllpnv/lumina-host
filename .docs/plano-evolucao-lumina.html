@@ -1,0 +1,585 @@
+<!doctype html>
+<title>Dossiê de Evolução — Lumina Host</title>
+<meta name="description" content="Arquitetura de integração, time de agentes e pipeline de execução para evoluir o Lumina em uma plataforma multi-cliente com site de reservas integrado, usando a Pousada Algas Marinhas como primeiro caso.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f3ea;
+    --paper-raised:#fffdf8;
+    --ink:#1c231f;
+    --ink-soft:#4c5650;
+    --line:#ded4bf;
+    --navy:#1c3d4a;
+    --navy-soft:#3a6472;
+    --brass:#9c7a3c;
+    --brass-soft:#c9a765;
+    --teal:#2f6e5f;
+    --teal-soft:#e4ede8;
+    --tag-bg:#eee6d2;
+    --code-bg:#efe8d6;
+    --shadow: 0 1px 2px rgba(28,35,31,0.06), 0 8px 24px -12px rgba(28,35,31,0.15);
+    --accent-good:#2f6e5f;
+    --accent-warn:#a8722c;
+    --accent-crit:#9c3f34;
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --paper:#14181a;
+      --paper-raised:#1b2123;
+      --ink:#e9e4d6;
+      --ink-soft:#a9a495;
+      --line:#33393a;
+      --navy:#7fb0c4;
+      --navy-soft:#5c8b9c;
+      --brass:#d4ab68;
+      --brass-soft:#a9803f;
+      --teal:#7bc3ab;
+      --teal-soft:#1e2b27;
+      --tag-bg:#232a25;
+      --code-bg:#1e2426;
+      --accent-good:#7bc3ab;
+      --accent-warn:#d6a24e;
+      --accent-crit:#e08a7c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14181a;
+    --paper-raised:#1b2123;
+    --ink:#e9e4d6;
+    --ink-soft:#a9a495;
+    --line:#33393a;
+    --navy:#7fb0c4;
+    --navy-soft:#5c8b9c;
+    --brass:#d4ab68;
+    --brass-soft:#a9803f;
+    --teal:#7bc3ab;
+    --teal-soft:#1e2b27;
+    --tag-bg:#232a25;
+    --code-bg:#1e2426;
+    --accent-good:#7bc3ab;
+    --accent-warn:#d6a24e;
+    --accent-crit:#e08a7c;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Public Sans", -apple-system, sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    color:var(--ink);
+    text-wrap:balance;
+    margin:0;
+  }
+  code, .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  a{ color:var(--navy-soft); }
+
+  .shell{ max-width:1180px; margin:0 auto; padding:0 2.5rem 8rem; }
+
+  /* ---------- Cover ---------- */
+  .cover{
+    padding:4.5rem 2.5rem 3rem;
+    max-width:1180px;
+    margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  .cover .kicker{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:1.1rem;
+    display:flex; gap:0.6rem; align-items:center;
+  }
+  .cover .kicker::before{
+    content:"";
+    width:1.6rem; height:1px; background:var(--brass);
+    display:inline-block;
+  }
+  .cover h1{
+    font-size:clamp(2.2rem, 4.2vw, 3.4rem);
+    line-height:1.08;
+    max-width:18ch;
+  }
+  .cover .sub{
+    margin-top:1.1rem;
+    font-size:1.15rem;
+    color:var(--ink-soft);
+    max-width:62ch;
+  }
+  .cover-meta{
+    margin-top:2.4rem;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1.5rem;
+    border-top:1px solid var(--line);
+    padding-top:1.5rem;
+  }
+  .cover-meta div{ display:flex; flex-direction:column; gap:0.25rem; }
+  .cover-meta .k{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-soft); font-family:"IBM Plex Mono",monospace; }
+  .cover-meta .v{ font-size:0.98rem; font-weight:600; }
+
+  /* ---------- Layout: index + content ---------- */
+  .layout{ display:grid; grid-template-columns:220px 1fr; gap:3.5rem; margin-top:3rem; }
+  nav.index{ position:sticky; top:2.5rem; align-self:start; font-size:0.88rem; }
+  nav.index a{
+    display:block; padding:0.4rem 0 0.4rem 0.75rem;
+    border-left:2px solid var(--line);
+    color:var(--ink-soft); text-decoration:none;
+  }
+  nav.index a:hover{ color:var(--ink); border-color:var(--brass); }
+  nav.index .num{ font-family:"IBM Plex Mono",monospace; color:var(--brass); margin-right:0.4rem; }
+
+  main{ min-width:0; }
+  section{ padding-bottom:4rem; scroll-margin-top:2rem; }
+  section + section{ border-top:1px solid var(--line); padding-top:3.5rem; }
+
+  .section-head{ display:flex; align-items:baseline; gap:0.9rem; margin-bottom:1.4rem; }
+  .section-head .num{
+    font-family:"IBM Plex Mono",monospace; color:var(--brass);
+    font-size:1rem; font-weight:500;
+  }
+  .section-head h2{ font-size:1.7rem; }
+  .lede{ font-size:1.05rem; color:var(--ink-soft); max-width:70ch; margin-bottom:1.6rem; }
+
+  p{ max-width:72ch; }
+  h3{ font-size:1.15rem; margin:2rem 0 0.8rem; }
+  h3 .num{ color:var(--brass); font-family:"IBM Plex Mono",monospace; font-weight:500; margin-right:0.4rem;}
+
+  ul.plain, ol.plain{ padding-left:1.2rem; max-width:72ch; }
+  ul.plain li, ol.plain li{ margin-bottom:0.5rem; }
+
+  .callout{
+    background:var(--teal-soft);
+    border-left:3px solid var(--teal);
+    padding:1rem 1.3rem;
+    border-radius:2px;
+    font-size:0.95rem;
+    max-width:72ch;
+    margin:1.4rem 0;
+  }
+  .callout .lbl{ font-family:"IBM Plex Mono",monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--teal); display:block; margin-bottom:0.35rem; }
+
+  .callout.warn{ background:var(--tag-bg); border-left-color:var(--accent-warn); }
+  .callout.warn .lbl{ color:var(--accent-warn); }
+
+  /* ---------- Tables ---------- */
+  .twrap{ overflow-x:auto; margin:1.2rem 0 2rem; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); }
+  table{ border-collapse:collapse; width:100%; font-size:0.9rem; min-width:640px; }
+  th{
+    text-align:left; font-family:"IBM Plex Mono",monospace; font-weight:500;
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft);
+    padding:0.75rem 1rem; border-bottom:1px solid var(--line); background:var(--tag-bg);
+  }
+  td{ padding:0.85rem 1rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td{ border-bottom:none; }
+  td.role{ font-weight:600; white-space:nowrap; }
+  .tag{
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:0.72rem;
+    background:var(--tag-bg); border:1px solid var(--line); border-radius:4px;
+    padding:0.12rem 0.45rem; margin:0.1rem 0.25rem 0.1rem 0;
+  }
+
+  /* ---------- Roster cards ---------- */
+  .roster{ display:grid; grid-template-columns:repeat(2,1fr); gap:1.1rem; margin:1.5rem 0 2rem; }
+  .card{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:8px;
+    padding:1.3rem 1.4rem; box-shadow:var(--shadow);
+  }
+  .card .role-name{ font-family:"Fraunces",serif; font-size:1.15rem; font-weight:600; }
+  .card .role-title{ font-size:0.82rem; color:var(--brass); font-family:"IBM Plex Mono",monospace; margin-top:0.15rem; margin-bottom:0.7rem; }
+  .card p{ font-size:0.92rem; color:var(--ink-soft); margin:0 0 0.7rem; max-width:none; }
+  .card .toolset{ display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.5rem; }
+
+  /* ---------- Phase timeline ---------- */
+  .phase{
+    display:grid; grid-template-columns:2.6rem 1fr; gap:1rem;
+    padding:1.3rem 0; border-bottom:1px solid var(--line);
+  }
+  .phase:last-child{ border-bottom:none; }
+  .phase .pnum{
+    font-family:"IBM Plex Mono",monospace; font-size:1.3rem; color:var(--brass); font-weight:500;
+  }
+  .phase h4{ font-size:1.05rem; margin-bottom:0.4rem; }
+  .phase .who{ font-size:0.82rem; color:var(--ink-soft); margin-bottom:0.5rem; }
+  .phase .who .tag{ background:transparent; border-color:var(--navy-soft); color:var(--navy-soft); }
+
+  /* ---------- Diagram ---------- */
+  .diagram{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:10px;
+    padding:1.6rem; margin:1.6rem 0 2rem; overflow-x:auto;
+  }
+  .diagram svg{ display:block; margin:0 auto; min-width:640px; }
+  .diagram-caption{ font-size:0.82rem; color:var(--ink-soft); margin-top:0.9rem; text-align:center; }
+
+  /* ---------- Checklist ---------- */
+  .checklist{ display:grid; gap:0.6rem; margin:1.2rem 0 2rem; }
+  .checkitem{
+    display:grid; grid-template-columns:1.4rem 1fr auto; gap:0.8rem; align-items:start;
+    padding:0.7rem 0.9rem; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised);
+    font-size:0.92rem;
+  }
+  .checkitem .box{ width:1rem; height:1rem; border:1.5px solid var(--ink-soft); border-radius:3px; margin-top:0.15rem; }
+  .checkitem .status{ font-family:"IBM Plex Mono",monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; white-space:nowrap; }
+  .status.have{ color:var(--accent-good); }
+  .status.need{ color:var(--accent-crit); }
+
+  footer{
+    max-width:1180px; margin:0 auto; padding:3rem 2.5rem 4rem;
+    border-top:1px solid var(--line); color:var(--ink-soft); font-size:0.85rem;
+  }
+
+  @media (max-width:880px){
+    .layout{ grid-template-columns:1fr; }
+    nav.index{ position:static; display:flex; flex-wrap:wrap; gap:0.5rem; }
+    nav.index a{ border-left:none; border:1px solid var(--line); border-radius:20px; padding:0.3rem 0.8rem; }
+    .roster{ grid-template-columns:1fr; }
+    .cover-meta{ grid-template-columns:repeat(2,1fr); }
+    .shell, footer{ padding-left:1.3rem; padding-right:1.3rem; }
+    .cover{ padding-left:1.3rem; padding-right:1.3rem; }
+  }
+</style>
+
+<div class="cover">
+  <div class="kicker">Lumina Host — Dossiê Interno</div>
+  <h1>Do PDV isolado ao PMS multi-cliente com site de reservas integrado</h1>
+  <p class="sub">Diagnóstico do produto atual, arquitetura de integração com Booking.com, time de agentes especializados e pipeline de execução para a próxima fase do Lumina — com a Pousada Algas Marinhas como primeiro cliente e case de referência.</p>
+  <div class="cover-meta">
+    <div><span class="k">Status</span><span class="v">Planejamento — pré-execução</span></div>
+    <div><span class="k">Primeiro cliente</span><span class="v">Pousada Algas Marinhas</span></div>
+    <div><span class="k">Escopo desta fase</span><span class="v">Time + pipeline + arquitetura</span></div>
+    <div><span class="k">Próxima fase</span><span class="v">Plano de construção detalhado</span></div>
+  </div>
+</div>
+
+<div class="shell">
+<div class="layout">
+  <nav class="index">
+    <a href="#diagnostico"><span class="num">00</span>Diagnóstico</a>
+    <a href="#visao"><span class="num">01</span>Visão de produto</a>
+    <a href="#arquitetura"><span class="num">02</span>Integração &amp; Booking.com</a>
+    <a href="#time"><span class="num">03</span>Time de agentes</a>
+    <a href="#pipeline"><span class="num">04</span>Pipeline de execução</a>
+    <a href="#algas"><span class="num">05</span>Caso Algas Marinhas</a>
+    <a href="#proximos"><span class="num">06</span>Próximos passos</a>
+  </nav>
+
+  <main>
+
+    <section id="diagnostico">
+      <div class="section-head"><span class="num">00</span><h2>Diagnóstico — onde o Lumina está hoje</h2></div>
+      <p class="lede">O backend (Express + Prisma + Postgres) já tem a espinha dorsal certa: multi-tenant por <code>organizationId</code>, RBAC de três papéis, e CRUD completo para reservas, quartos/mesas, financeiro e estoque. O que falta não é reescrever — é estender três pontos específicos que hoje são rígidos demais para um produto com vários clientes de perfis diferentes.</p>
+
+      <h3><span class="num">a.</span>Tipo de estabelecimento é binário e não controla a interface</h3>
+      <p>Hoje <code>Organization.tipo</code> aceita só <code>"restaurante"</code> ou <code>"pousada"</code> (<code>AdminOrganizations.tsx:51</code>), e o menu lateral (<code>AppSidebar.tsx:24-38</code>) mostra <strong>PDV Restaurante e PDV Hotel para todo mundo</strong>, sem checar o tipo. Uma pousada pura hoje veria um item de menu de restaurante que não deveria nem existir para ela.</p>
+
+      <h3><span class="num">b.</span>"Ativo" existe, mas não é gestão de contrato</h3>
+      <p><code>Organization.ativo</code> é um booleano solto — não há data de início/fim de vigência, plano contratado de forma estruturada, nem um histórico do que aconteceu quando o contrato foi suspenso. Isso é o suficiente para "ligar/desligar" um cliente, mas não para o super admin gerenciar contratos de verdade.</p>
+
+      <h3><span class="num">c.</span>Não existe conceito de "site público" ligado a uma organização</h3>
+      <p>O Lumina hoje é 100% um painel interno (autenticado). Não há nenhuma rota pública, nenhum endpoint de leitura sem login, e nenhuma noção de "conteúdo de vitrine" (fotos, descrições, pacotes, dicas) — só dados operacionais (reserva, quarto, preço-base). O site da Algas Marinhas foi construído no Claude Design como uma peça isolada, com dados digitados à mão — exatamente o padrão que <em>não</em> queremos repetir cliente após cliente.</p>
+
+      <div class="callout">
+        <span class="lbl">Leitura</span>
+        A boa notícia: o modelo de dados (<code>TableRoom</code>, <code>Reservation</code>) já cobre <strong>quartos, tipos, capacidade, preço-base e status</strong> — a base para alimentar um site público já existe. Falta a camada de conteúdo de marketing (fotos, descrição longa, pacotes, dicas) e a camada pública que expõe isso.
+      </div>
+    </section>
+
+    <section id="visao">
+      <div class="section-head"><span class="num">01</span><h2>Visão de produto — o que muda</h2></div>
+      <p class="lede">Três mudanças estruturais, nesta ordem de dependência: primeiro o cadastro do super admin fica correto, depois o modelo de dados ganha a camada de "vitrine", só então o site de cada cliente passa a ser gerado a partir do Lumina em vez de escrito à mão.</p>
+
+      <h3><span class="num">1.</span>Cadastro de cliente com tipo de negócio</h3>
+      <p>No cadastro do super admin, três opções mutuamente exclusivas — <strong>Pousada</strong>, <strong>Pousada + Restaurante</strong> ou <strong>Restaurante</strong> — e a interface (menu, módulos, PDV) se adapta:</p>
+      <div class="twrap"><table>
+        <tr><th>Tipo escolhido</th><th>Módulos visíveis</th><th>Módulos ocultos</th></tr>
+        <tr><td class="role">Pousada</td><td>PDV Hotel, Reservas, Site de reservas, Financeiro, Estoque, Equipe</td><td>PDV Restaurante</td></tr>
+        <tr><td class="role">Pousada + Restaurante</td><td>Todos os módulos</td><td>—</td></tr>
+        <tr><td class="role">Restaurante</td><td>PDV Restaurante, Financeiro, Estoque, Equipe</td><td>PDV Hotel, Reservas, Site de reservas</td></tr>
+      </table></div>
+      <p>Tecnicamente: trocar <code>tipo</code> de dois para três valores (<code>pousada</code> | <code>pousada_restaurante</code> | <code>restaurante</code>) e mover a lógica do menu de "estática" para "derivada do tipo da organização ativa" — a mesma <code>useOrganization()</code> que já existe hoje.</p>
+
+      <h3><span class="num">2.</span>Gestão de contrato, não só um interruptor</h3>
+      <p>O super admin passa a registrar vigência (data de início, data de fim/renovação), plano e status (<code>ativo</code> / <code>inativo</code> / <code>inadimplente</code>) por organização. Quando um contrato fica inativo, o painel interno bloqueia acesso — e, criticamente, <strong>o site público do cliente também deve refletir isso</strong> (ex: mostrar "temporariamente indisponível" em vez de manter reservas abertas para um cliente que saiu).</p>
+
+      <h3><span class="num">3.</span>Site público como "vitrine" do mesmo dado, não um projeto à parte</h3>
+      <p>Cada pousada cliente ganha uma <strong>página de reservas pública</strong>, com o mesmo visual/estrutura provada no site da Algas Marinhas (ver seção 05), mas alimentada por uma API pública de leitura do Lumina — fotos, tipos de quarto, tarifas, pacotes e dicas ficam editáveis pelo admin da pousada dentro do próprio painel, e aparecem no site sem precisar tocar em código a cada cliente novo.</p>
+      <div class="callout warn">
+        <span class="lbl">Padrão para escalar clientes</span>
+        Este é o ponto que vira processo replicável: <strong>o site de reserva de cada cliente é um "tema" sobre o mesmo motor</strong> (dados + disponibilidade + checkout), não um artefato único por cliente. Algas Marinhas define o layout de referência; os próximos clientes reaproveitam o motor e recebem apenas identidade visual e conteúdo próprios.
+      </div>
+    </section>
+
+    <section id="arquitetura">
+      <div class="section-head"><span class="num">02</span><h2>Integração com Booking.com e o site do cliente</h2></div>
+      <p class="lede">Pesquisa de mercado (Cloudbeds, Mews, SiteMinder, Channex, e documentação de parceiros do próprio Booking.com) aponta um padrão consistente e uma restrição real que muda o plano.</p>
+
+      <h3><span class="num">a.</span>O que os melhores PMS fazem</h3>
+      <ul class="plain">
+        <li><strong>PMS como fonte única de verdade.</strong> Tarifas, disponibilidade e restrições nascem no PMS e são <em>empurradas</em> para todos os canais — nunca o contrário. O site próprio do hotel lê a mesma disponibilidade que os canais externos, para nunca ficar "dessincronizado do próprio dono".</li>
+        <li><strong>Sincronia por API/webhook, não por importação manual.</strong> Reservas chegam de volta via webhook (preferível) ou polling curto — minutos de atraso já é risco real de overbooking em alta ocupação.</li>
+        <li><strong>Channel manager como camada separada, não uma feature do PMS.</strong> Mews e a maioria dos PMS modernos não certificam a conexão com cada OTA eles mesmos — eles conectam a um channel manager (a SiteMinder, no caso da Mews) que já tem certificação com 400+ canais.</li>
+      </ul>
+
+      <h3><span class="num">b.</span>A restrição real: Booking.com direto não é opção agora</h3>
+      <div class="callout warn">
+        <span class="lbl">Achado da pesquisa</span>
+        A Booking.com está atualmente <strong>pausando a homologação de novos provedores de conectividade</strong> — ou seja, o Lumina não consegue (e não deveria tentar) virar um "channel manager certificado" direto com a Booking.com nesta fase. Além disso, a sincronização via <strong>iCal só é permitida para propriedades que não usam nenhum PMS/channel manager</strong>, e a própria Booking.com não sincroniza iCal entre múltiplos quartos da mesma propriedade — não resolve o caso de uma pousada com vários tipos de quarto.
+      </div>
+      <p>O caminho realista, usado por PMS pequenos e médios no mercado inteiro, é integrar via um <strong>channel manager white-label</strong> — eles já têm a certificação com a Booking.com e revendem a conectividade via API REST para quem constrói o PMS por trás. O Lumina integra uma vez com o channel manager; o channel manager já resolve Booking.com, Airbnb, Expedia etc.</p>
+
+      <h3><span class="num">c.</span>Qual channel manager — revisado por custo</h3>
+      <p>Primeira proposta foi o Channex, mas a partir de US$ 130/mês de plano mínimo não faz sentido para um Lumina com um cliente só. Comparando as alternativas reais do mercado:</p>
+      <div class="twrap"><table>
+        <tr><th>Provedor</th><th>Custo de entrada</th><th>Como cobra</th><th>Leitura</th></tr>
+        <tr><td class="role">Beds24 <span class="tag" style="color:var(--accent-good);border-color:var(--accent-good);">recomendado</span></td><td>≈ US$ 9/mês por propriedade (pay-as-you-go)</td><td>Por propriedade do cliente, não por conta Lumina — custo cresce junto com a receita de cada cliente novo</td><td>API REST v2 madura e bem documentada, programa de white-label/revenda pensado exatamente para quem constrói um PMS por cima. Contrapartida: UI própria do Beds24 é datada — mas o Lumina nunca expõe essa UI, só consome a API.</td></tr>
+        <tr><td class="role">Smoobu</td><td>≈ €15/mês (1 propriedade)</td><td>Por conta, escalona em faixas (5, 15 propriedades)</td><td>Boa opção secundária, API mais simples; escala pior que Beds24 se o Lumina crescer para dezenas de clientes.</td></tr>
+        <tr><td class="role">Octorate</td><td>≈ €20/mês (1 propriedade)</td><td>Por propriedade</td><td>Forte na Europa/compliance fiscal; menos referência de mercado no Brasil.</td></tr>
+        <tr><td class="role">Channex</td><td>≈ US$ 130/mês</td><td>Plano fechado B2B</td><td>API mais moderna e onboarding mais "enterprise" — faz sentido revisitar quando o Lumina tiver volume de clientes que justifique o custo fixo mais alto.</td></tr>
+      </table></div>
+      <h3><span class="num">d.</span>E a opção gratuita? Duas foram verificadas a fundo</h3>
+      <p>Como quem constrói essa integração é o próprio time do Lumina (sem custo de mão de obra terceirizada), o único custo real em jogo é a assinatura recorrente do fornecedor. Duas rotas genuinamente gratuitas foram investigadas antes de fechar a recomendação:</p>
+      <ul class="plain">
+        <li><strong>NOBEDS (parecia a resposta certa, não é):</strong> tem um tier "free" de verdade (€0, até 10 quartos, 3 canais), mas <strong>o tier gratuito não inclui API</strong> — é só um painel isolado, sem forma de conectar ao Lumina. Acesso à API só existe no plano de US$ 99/mês, mais caro que o Beds24. E reviews independentes relatam bugs de <em>dupla reserva</em> — exatamente o risco que uma integração de channel manager existe para eliminar. Descartado.</li>
+        <li><strong>iCal nativo da Booking.com (o único caminho de US$ 0 real):</strong> sem fornecedor terceiro, sem custo, sempre disponível. Mas é uma integração fraca: só bloqueia datas (sem nome do hóspede, contato, valor ou forma de pagamento), atraso de sincronização de até 12h, e só funciona enquanto a propriedade não usa nenhum PMS/channel manager certificado — se a Beds24 entrar depois, o iCal precisa ser desligado. Também exige no máximo 1 unidade por tipo de quarto (a confirmar com a Algas Marinhas, mas plausível para uma pousada pequena).</li>
+      </ul>
+      <div class="callout">
+        <span class="lbl">Recomendação final</span>
+        <strong>Beds24 continua sendo a melhor escolha</strong> — não porque as alternativas gratuitas são inviáveis por serem gratuitas, mas porque nenhuma delas entrega uma integração <em>boa</em> pelo mesmo dinheiro (ou por menos). A US$ 9/mês por propriedade, é mais barato que a única opção gratuita com API (NOBEDS a US$ 99/mês) e entrega o que uma integração de verdade precisa: dados completos da reserva, sincronização em minutos, não em até 12 horas. Sugestão de sequência: usar o <strong>iCal gratuito como rede de segurança imediata</strong> na Fase 01 (bloqueia datas, evita overbooking óbvio, custo zero, é rápido de construir) e migrar para Beds24 na Fase 05 quando o volume de reservas da Algas Marinhas justificar a automação completa.
+      </div>
+
+      <h3><span class="num">e.</span>Arquitetura proposta (em fases)</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 920 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama de arquitetura de integração">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <style>
+            .box{ fill:var(--paper-raised); stroke:var(--line); stroke-width:1.3; }
+            .box.core{ stroke:var(--navy-soft); stroke-width:1.8; }
+            .box.ext{ stroke-dasharray:4 3; }
+            .lbl{ font-family:"Public Sans",sans-serif; font-size:13px; fill:var(--ink); }
+            .lbl.small{ font-size:11px; fill:var(--ink-soft); }
+            .lbl.tag{ font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--brass); }
+            .flow{ stroke:var(--navy-soft); stroke-width:1.6; fill:none; marker-end:url(#arrow); color:var(--navy-soft); }
+            .flow.phase2{ stroke:var(--teal); color:var(--teal); }
+          </style>
+
+          <rect x="360" y="20" width="200" height="70" rx="8" class="box core"/>
+          <text x="460" y="48" text-anchor="middle" class="lbl" font-weight="600">Lumina (PMS Core)</text>
+          <text x="460" y="66" text-anchor="middle" class="lbl small">Postgres + API — fonte única</text>
+
+          <rect x="140" y="150" width="190" height="64" rx="8" class="box"/>
+          <text x="235" y="176" text-anchor="middle" class="lbl" font-weight="600">Painel Admin</text>
+          <text x="235" y="194" text-anchor="middle" class="lbl small">Super admin + admin do cliente</text>
+
+          <rect x="600" y="150" width="190" height="64" rx="8" class="box"/>
+          <text x="695" y="176" text-anchor="middle" class="lbl" font-weight="600">Site do cliente</text>
+          <text x="695" y="194" text-anchor="middle" class="lbl small">ex: Algas Marinhas — API pública</text>
+
+          <rect x="370" y="270" width="180" height="64" rx="8" class="box ext"/>
+          <text x="460" y="296" text-anchor="middle" class="lbl" font-weight="600">Channel Manager</text>
+          <text x="460" y="314" text-anchor="middle" class="lbl small">white-label (Beds24)</text>
+
+          <rect x="370" y="370" width="180" height="1" fill="none"/>
+          <rect x="620" y="270" width="230" height="64" rx="8" class="box ext"/>
+          <text x="735" y="296" text-anchor="middle" class="lbl" font-weight="600">Booking.com + OTAs</text>
+          <text x="735" y="314" text-anchor="middle" class="lbl small">Airbnb, Expedia, Agoda…</text>
+
+          <path class="flow" d="M400,90 C360,110 300,120 260,150"/>
+          <path class="flow" d="M520,90 C570,110 640,120 680,150"/>
+          <path class="flow phase2" d="M440,90 C430,150 435,220 445,270"/>
+          <path class="flow phase2" d="M550,300 L620,300"/>
+
+          <text x="90" y="365" class="lbl tag">FASE 1 · custo zero</text>
+          <text x="90" y="380" class="lbl small">Admin cadastra tudo manualmente,</text>
+          <text x="90" y="395" class="lbl small">iCal grátis só bloqueia datas</text>
+
+          <text x="620" y="365" class="lbl tag" fill="var(--teal)">FASE 2 · Beds24 ≈US$9/mês</text>
+          <text x="620" y="380" class="lbl small">Tarifas/disponibilidade sincronizam</text>
+          <text x="620" y="395" class="lbl small">com OTAs via channel manager</text>
+        </svg>
+        <p class="diagram-caption">Fase 1: painel e site do cliente já compartilham a mesma fonte de dados. Fase 2: uma camada de channel manager plugada ao Lumina resolve Booking.com/OTAs sem o Lumina precisar de certificação própria.</p>
+      </div>
+
+      <h3><span class="num">f.</span>O que construir em cada fase</h3>
+      <ul class="plain">
+        <li><strong>Fase 1 (MVP, custo zero):</strong> API pública de leitura (quartos, tarifas, disponibilidade, pacotes, dicas) + reserva direta pelo site indo para a mesma tabela <code>Reservation</code> do painel. Em paralelo, o Lumina importa o feed iCal gratuito da Booking.com para bloquear datas automaticamente (sem detalhes da reserva). Reservas feitas na extranet da Booking.com continuam sendo lançadas manualmente no Lumina pelo admin — tela dedicada para isso, rápida, tipo "dar entrada em reserva externa", usando o bloqueio do iCal como aviso de que há algo para lançar.</li>
+        <li><strong>Fase 2 (sincronização real, Beds24):</strong> assinar o Beds24 (≈US$ 9/mês por propriedade) e desligar o iCal. O Lumina passa a empurrar tarifas/disponibilidade automaticamente e receber reservas da Booking.com via webhook, com dados completos do hóspede, caindo na mesma tabela <code>Reservation</code> com uma origem marcada (<code>source: "booking.com"</code>).</li>
+        <li><strong>Fase 3 (escala):</strong> se o volume de clientes/reservas justificar o custo e o esforço de homologação, avaliar conexão direta com a Booking.com Connectivity API ou upgrade para Channex/SiteMinder — só faz sentido depois que a Fase 2 já provou o modelo com clientes reais.</li>
+      </ul>
+
+      <p style="font-size:0.85rem;color:var(--ink-soft);margin-top:1.5rem;">Fontes: <a href="https://developers.booking.com/connectivity/docs" target="_blank" rel="noopener">Booking.com Connectivity APIs</a>, <a href="https://partnerhelp.booking.com/hc/en-us/articles/115005213509" target="_blank" rel="noopener">Booking.com — limites do iCal</a>, <a href="https://www.stayntouch.com/articles/hotel-channel-manager-automation-2026" target="_blank" rel="noopener">StayNTouch — arquitetura de sincronização em tempo real</a>, <a href="https://www.beds24.com/reseller.html" target="_blank" rel="noopener">Beds24 — programa de reseller/white-label</a>, <a href="https://wiki.beds24.com/index.php/Connect_PMS_with_API" target="_blank" rel="noopener">Beds24 — conectar PMS via API</a>, <a href="https://nobeds.com/prices/" target="_blank" rel="noopener">NOBEDS — tiers de preço e API</a>, <a href="https://www.capterra.com/p/176616/NOBEDS/reviews/" target="_blank" rel="noopener">NOBEDS — reviews independentes</a>, <a href="https://comparatifchannelmanager.fr/en/hotel-channel-manager/" target="_blank" rel="noopener">Comparativo de preços de channel managers 2026</a>.</p>
+    </section>
+
+    <section id="time">
+      <div class="section-head"><span class="num">03</span><h2>Time de agentes para a refatoração</h2></div>
+      <p class="lede">Papéis com mandato e ferramentas específicas — para acionar como agentes dedicados quando a construção começar. Cada papel mapeia para skills/ferramentas já disponíveis neste ambiente, não é um cargo abstrato.</p>
+
+      <div class="roster">
+        <div class="card">
+          <div class="role-name">Arquiteto(a) Sênior de Sistemas de Hospitalidade</div>
+          <div class="role-title">especialista em PMS &amp; channel management</div>
+          <p>Referência de mercado: como Cloudbeds, Mews, SiteMinder e Channex resolvem multi-propriedade, tarifário, canal e overbooking. Valida toda decisão de arquitetura de integração contra o que já é padrão consolidado — evita reinventar um channel manager do zero.</p>
+          <div class="toolset"><span class="tag">WebSearch</span><span class="tag">WebFetch</span><span class="tag">Explore</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">Estrategista Direto &amp; Provocador</div>
+          <div class="role-title">contrarian / product sense</div>
+          <p>Papel deliberadamente sem filtro: questiona escopo inflado, aponta quando uma decisão "parece certa" mas não escala para o 5º cliente, força simplificação. Revisa cada proposta de arquitetura perguntando "isso é fácil de repetir para o próximo cliente?"</p>
+          <div class="toolset"><span class="tag">Agent (fork)</span><span class="tag">sem tooling pesado — julgamento</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">Engenheiro(a) Backend Sênior</div>
+          <div class="role-title">Express, Prisma, Postgres, integrações</div>
+          <p>Dono do schema multi-tenant, da API pública de leitura, do endpoint de reserva externa e da camada de sincronização com o channel manager. Responsável por RBAC e isolamento de dados entre clientes continuar correto conforme o modelo cresce.</p>
+          <div class="toolset"><span class="tag">code-review</span><span class="tag">security-review</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">Engenheiro(a) Frontend Sênior</div>
+          <div class="role-title">React, TanStack Query, painel + site público</div>
+          <p>Constrói o painel de conteúdo de vitrine (fotos, pacotes, dicas) dentro do admin, e o "motor de tema" que reaproveita o layout provado da Algas Marinhas para os próximos clientes.</p>
+          <div class="toolset"><span class="tag">code-review</span><span class="tag">dataviz</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">Designer de UX/UI</div>
+          <div class="role-title">painel admin + tema do site de reservas</div>
+          <p>Desenha o fluxo de cadastro do super admin (tipo de negócio, contrato) e o padrão de "tema replicável" do site de reservas — o que é fixo no motor vs. o que cada cliente pode customizar (cores, fotos, texto).</p>
+          <div class="toolset"><span class="tag">design</span><span class="tag">artifact-design</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">Engenheiro(a) de Integrações</div>
+          <div class="role-title">channel manager, webhooks, conciliação de reservas</div>
+          <p>Especialista no ponto mais arriscado do projeto: garantir que uma reserva vinda da Booking.com nunca duplique ou conflite com uma reserva feita no site próprio ou lançada manualmente. Dono da Fase 2 da arquitetura de integração.</p>
+          <div class="toolset"><span class="tag">security-review</span><span class="tag">code-review</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">QA / Testes E2E</div>
+          <div class="role-title">validação ponta a ponta, multi-tenant</div>
+          <p>Garante que trocar o tipo de uma organização realmente muda o que aparece no menu, que dois clientes nunca veem dado um do outro, e que o fluxo completo (site público → reserva → painel → financeiro) funciona de verdade, não só no papel.</p>
+          <div class="toolset"><span class="tag">claude-in-chrome</span><span class="tag">code-review (test-coverage)</span></div>
+        </div>
+
+        <div class="card">
+          <div class="role-name">Product Lead / Orquestrador</div>
+          <div class="role-title">sequenciamento e checkpoints com o cliente</div>
+          <p>Traduz este dossiê em tarefas, decide a ordem real de execução, e é quem leva decisões de escopo/negócio de volta para validação — inclusive o ponto de decisão sobre qual channel manager contratar.</p>
+          <div class="toolset"><span class="tag">Workflow</span><span class="tag">Plan</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <div class="section-head"><span class="num">04</span><h2>Pipeline de execução</h2></div>
+      <p class="lede">Cinco fases, cada uma com um checkpoint de decisão antes de avançar para a próxima — nenhuma fase começa sem a anterior estar validada.</p>
+
+      <div class="phase">
+        <div class="pnum">01</div>
+        <div>
+          <h4>Fundação multi-tipo</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">UX/UI</span></div>
+          <p>Migrar <code>tipo</code> para três valores, condicionar o menu/módulos ao tipo da organização, e transformar "ativo" em gestão de contrato de verdade (vigência, plano, status). <strong>Checkpoint:</strong> super admin consegue cadastrar a Algas Marinhas como "Pousada" e o sistema já se comporta diferente de um restaurante puro.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">02</div>
+        <div>
+          <h4>Camada de conteúdo de vitrine</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">Frontend Sênior</span></div>
+          <p>Novos modelos: fotos por quarto/propriedade, descrição longa, pacotes promocionais, dicas de passeio e transfer, formas de pagamento aceitas — tudo editável pelo admin do cliente dentro do painel.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">03</div>
+        <div>
+          <h4>API pública + motor de site</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">Frontend Sênior</span><span class="tag">Designer</span></div>
+          <p>API de leitura sem autenticação (disponibilidade, tarifas, conteúdo) e o "tema" replicável baseado no layout já validado da Algas Marinhas. <strong>Checkpoint:</strong> o site da Algas Marinhas passa a ser gerado a partir de dados reais do Lumina, não mais estático.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">04</div>
+        <div>
+          <h4>Reserva direta + lançamento manual de reservas externas</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">QA</span></div>
+          <p>Fluxo de reserva pelo site indo direto para o Lumina, e uma tela rápida para o admin lançar manualmente reservas feitas fora (Booking.com, telefone, WhatsApp) sem duplicar disponibilidade.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">05</div>
+        <div>
+          <h4>Integração com channel manager (Booking.com)</h4>
+          <div class="who"><span class="tag">Engenheiro de Integrações</span><span class="tag">Arquiteto de Hospitalidade</span></div>
+          <p>Contratar o <strong>Beds24</strong> (≈US$ 9/mês por propriedade), integrar via API v2, sincronizar tarifas/disponibilidade automaticamente, e receber reservas da Booking.com por webhook. <strong>Checkpoint de negócio:</strong> confirmar Beds24 vs. revisitar Channex/SiteMinder se o volume de clientes crescer muito — decisão do usuário, não técnica.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="algas">
+      <div class="section-head"><span class="num">05</span><h2>Caso Algas Marinhas — primeiro cliente</h2></div>
+      <p class="lede">Inspecionei o artefato publicado de verdade (não só o briefing que gerou ele). A estrutura é a referência de layout certa para o "motor de tema" da Fase 03 — mas o conteúdo hoje é <strong>100% estático, escrito à mão dentro do Claude Design</strong>, sem nenhum campo dinâmico, preço ou formulário de reserva real.</p>
+
+      <div class="callout warn">
+        <span class="lbl">Divergência ainda não resolvida</span>
+        Reverifiquei o artefato depois do reenvio — <strong>a seção de Gastronomia ainda mostra Il Cantuccio</strong> (aparece 3 vezes: no texto de introdução e num placeholder de foto "salão do Il Cantuccio"). Adegaria Primitivo e Cafeteria Recanto do Café não aparecem em nenhum lugar do arquivo (0 ocorrências). Ou o reenvio não incluiu essa correção, ou a sessão do Claude Design não salvou a mudança — vale conferir diretamente lá antes de tratar este site como referência de conteúdo final. A estrutura de layout continua válida.
+      </div>
+
+      <div class="checklist">
+        <div class="checkitem"><div class="box"></div><div><strong>Estrutura de seções</strong> (hero, sobre, quartos, gastronomia, localização, avaliações, CTA final, footer) — validada no site publicado.</div><div class="status have">Temos</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Identidade visual real do site</strong>: verde-mar `#1f5d47`, azul-marinho `#143a72`, dourado `#b8862b`, tinta `#0b1c3a`; tipografia Marcellus (display) + Figtree (corpo).</div><div class="status have">Temos</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>4 tipos de quarto (Duplo, Duplo Amplo, Triplo, Quádruplo)</strong> — nomes e capacidades confirmados, sem tarifa.</div><div class="status have">Temos parcial</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Nota Booking.com (8,0/834 avaliações) e sub-notas</strong> (localização 9,5, casais 9,4, funcionários 8,9, wifi 8,7) — confirmado.</div><div class="status have">Temos</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Gastronomia correta</strong> (Adegaria Primitivo + Cafeteria Recanto do Café, sem Il Cantuccio) — precisa ser corrigido no site publicado.</div><div class="status need">Corrigir no site</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Fotos reais</strong> de cada tipo de quarto e áreas comuns — hoje só placeholders (`&lt;image-slot&gt;`) e um brasão em base64.</div><div class="status need">Falta coletar</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Tarifas reais por tipo de quarto e temporada (alta/baixa)</strong> — hoje nenhum preço aparece em lugar nenhum do site.</div><div class="status need">Falta coletar</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Formas de pagamento aceitas</strong> para efetivar reserva direta (PIX, cartão, sinal de reserva)</div><div class="status need">Falta coletar</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Pacotes promocionais</strong> (ex: diária + jantar na Adegaria Primitivo)</div><div class="status need">Falta definir com o cliente</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Dicas de passeios e de transfer</strong> (Projeto Tamar, vila, Salvador → Praia do Forte) — pontos citados na seção de localização, sem curadoria formal em lista própria.</div><div class="status need">Falta coletar</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>Fluxo de reserva</strong> — hoje todo CTA aponta para a Booking.com; não existe formulário, data-picker ou checkout dentro do site.</div><div class="status need">Fase 04 constrói isso</div></div>
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Por que isso importa agora</span>
+        Cada item "falta coletar" vira, na Fase 02, um campo estruturado no painel do admin — não texto solto no site. Definir a lista completa agora evita descobrir metade dela no meio da implementação.
+      </div>
+    </section>
+
+    <section id="proximos">
+      <div class="section-head"><span class="num">06</span><h2>Próximos passos</h2></div>
+      <p class="lede">Este documento é a organização do time e da arquitetura — o próximo passo, como você definiu, é o plano de construção detalhado. Três decisões suas destravam esse plano:</p>
+      <ol class="plain">
+        <li><strong>Aprovar a sequência de fases</strong> da seção 04, ou reordenar algo com base em prioridade de negócio (ex: se site público sem sincronização automática com Booking.com já resolve o próximo cliente, a Fase 05 pode esperar).</li>
+        <li><strong>Confirmar o modelo de três tipos de negócio</strong> (Pousada / Pousada+Restaurante / Restaurante) e se há um quarto tipo previsto no roadmap (ex: pousada sem PDV de restaurante mas com bar).</li>
+        <li><strong>Iniciar a coleta com a Pousada Algas Marinhas</strong> dos itens marcados "falta coletar" na seção 05 — sem isso, a Fase 02/03 não tem dado real para validar contra.</li>
+      </ol>
+      <p>Continua na <a href="https://claude.ai/code/artifact/a467ca16-11fd-4081-9e24-0368dd08509e" target="_blank" rel="noopener">Parte 2 — Plano de Construção</a>: modelo de dados, endpoints, telas de admin e o motor de site público, tarefa por tarefa, fase por fase.</p>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<footer>
+  Lumina Host — dossiê de planejamento interno. Gerado a partir do código atual do repositório, pesquisa de mercado (Booking.com, Cloudbeds, Mews, SiteMinder, Channex) e do site já produzido para a Pousada Algas Marinhas.
+</footer>

@@ -1,0 +1,491 @@
+<!doctype html>
+<title>Plano de Construção — Algas Marinhas</title>
+<meta name="description" content="Plano de construção detalhado: modelo de dados, endpoints, telas de admin, motor de site público e integração iCal gratuita — refatoração completa do Lumina para atender a Pousada Algas Marinhas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f3ea; --paper-raised:#fffdf8; --ink:#1c231f; --ink-soft:#4c5650; --line:#ded4bf;
+    --navy:#1c3d4a; --navy-soft:#3a6472; --brass:#9c7a3c; --brass-soft:#c9a765;
+    --teal:#2f6e5f; --teal-soft:#e4ede8; --tag-bg:#eee6d2; --code-bg:#efe8d6;
+    --shadow: 0 1px 2px rgba(28,35,31,0.06), 0 8px 24px -12px rgba(28,35,31,0.15);
+    --accent-good:#2f6e5f; --accent-warn:#a8722c; --accent-crit:#9c3f34;
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --paper:#14181a; --paper-raised:#1b2123; --ink:#e9e4d6; --ink-soft:#a9a495; --line:#33393a;
+      --navy:#7fb0c4; --navy-soft:#5c8b9c; --brass:#d4ab68; --brass-soft:#a9803f;
+      --teal:#7bc3ab; --teal-soft:#1e2b27; --tag-bg:#232a25; --code-bg:#1e2426;
+      --accent-good:#7bc3ab; --accent-warn:#d6a24e; --accent-crit:#e08a7c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14181a; --paper-raised:#1b2123; --ink:#e9e4d6; --ink-soft:#a9a495; --line:#33393a;
+    --navy:#7fb0c4; --navy-soft:#5c8b9c; --brass:#d4ab68; --brass-soft:#a9803f;
+    --teal:#7bc3ab; --teal-soft:#1e2b27; --tag-bg:#232a25; --code-bg:#1e2426;
+    --accent-good:#7bc3ab; --accent-warn:#d6a24e; --accent-crit:#e08a7c;
+  }
+  *{box-sizing:border-box}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:"Public Sans", -apple-system, sans-serif; line-height:1.55; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,h4{ font-family:"Fraunces", Georgia, serif; font-weight:600; color:var(--ink); text-wrap:balance; margin:0; }
+  code, .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  a{ color:var(--navy-soft); }
+  .shell{ max-width:1180px; margin:0 auto; padding:0 2.5rem 8rem; }
+
+  .cover{ padding:3.5rem 2.5rem 3rem; max-width:1180px; margin:0 auto; border-bottom:1px solid var(--line); }
+  .cover .backlink{ font-family:"IBM Plex Mono",monospace; font-size:0.78rem; color:var(--ink-soft); text-decoration:none; display:inline-flex; gap:0.4rem; margin-bottom:1.6rem; }
+  .cover .backlink:hover{ color:var(--navy-soft); }
+  .cover .kicker{ font-family:"IBM Plex Mono", monospace; font-size:0.78rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--brass); margin-bottom:1.1rem; display:flex; gap:0.6rem; align-items:center; }
+  .cover .kicker::before{ content:""; width:1.6rem; height:1px; background:var(--brass); display:inline-block; }
+  .cover h1{ font-size:clamp(2.2rem, 4.2vw, 3.4rem); line-height:1.08; max-width:22ch; }
+  .cover .sub{ margin-top:1.1rem; font-size:1.15rem; color:var(--ink-soft); max-width:66ch; }
+  .cover-meta{ margin-top:2.4rem; display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; border-top:1px solid var(--line); padding-top:1.5rem; }
+  .cover-meta div{ display:flex; flex-direction:column; gap:0.25rem; }
+  .cover-meta .k{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-soft); font-family:"IBM Plex Mono",monospace; }
+  .cover-meta .v{ font-size:0.98rem; font-weight:600; }
+
+  .layout{ display:grid; grid-template-columns:220px 1fr; gap:3.5rem; margin-top:3rem; }
+  nav.index{ position:sticky; top:2.5rem; align-self:start; font-size:0.88rem; }
+  nav.index a{ display:block; padding:0.4rem 0 0.4rem 0.75rem; border-left:2px solid var(--line); color:var(--ink-soft); text-decoration:none; }
+  nav.index a:hover{ color:var(--ink); border-color:var(--brass); }
+  nav.index .num{ font-family:"IBM Plex Mono",monospace; color:var(--brass); margin-right:0.4rem; }
+
+  main{ min-width:0; }
+  section{ padding-bottom:4rem; scroll-margin-top:2rem; }
+  section + section{ border-top:1px solid var(--line); padding-top:3.5rem; }
+  .section-head{ display:flex; align-items:baseline; gap:0.9rem; margin-bottom:1.4rem; }
+  .section-head .num{ font-family:"IBM Plex Mono",monospace; color:var(--brass); font-size:1rem; font-weight:500; }
+  .section-head h2{ font-size:1.7rem; }
+  .lede{ font-size:1.05rem; color:var(--ink-soft); max-width:70ch; margin-bottom:1.6rem; }
+  p{ max-width:72ch; }
+  h3{ font-size:1.15rem; margin:2rem 0 0.8rem; }
+  h3 .num{ color:var(--brass); font-family:"IBM Plex Mono",monospace; font-weight:500; margin-right:0.4rem;}
+  h4.sub{ font-size:0.98rem; margin:1.4rem 0 0.5rem; color:var(--ink); }
+  ul.plain, ol.plain{ padding-left:1.2rem; max-width:72ch; }
+  ul.plain li, ol.plain li{ margin-bottom:0.5rem; }
+
+  .callout{ background:var(--teal-soft); border-left:3px solid var(--teal); padding:1rem 1.3rem; border-radius:2px; font-size:0.95rem; max-width:72ch; margin:1.4rem 0; }
+  .callout .lbl{ font-family:"IBM Plex Mono",monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--teal); display:block; margin-bottom:0.35rem; }
+  .callout.warn{ background:var(--tag-bg); border-left-color:var(--accent-warn); }
+  .callout.warn .lbl{ color:var(--accent-warn); }
+  .callout.crit{ background:var(--tag-bg); border-left-color:var(--accent-crit); }
+  .callout.crit .lbl{ color:var(--accent-crit); }
+
+  .twrap{ overflow-x:auto; margin:1.2rem 0 2rem; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); }
+  table{ border-collapse:collapse; width:100%; font-size:0.9rem; min-width:600px; }
+  th{ text-align:left; font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:0.75rem 1rem; border-bottom:1px solid var(--line); background:var(--tag-bg); }
+  td{ padding:0.85rem 1rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td{ border-bottom:none; }
+  td.role{ font-weight:600; white-space:nowrap; }
+  .tag{ display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:0.72rem; background:var(--tag-bg); border:1px solid var(--line); border-radius:4px; padding:0.12rem 0.45rem; margin:0.1rem 0.25rem 0.1rem 0; }
+
+  pre.code{ background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:1.1rem 1.3rem; overflow-x:auto; font-family:"IBM Plex Mono",monospace; font-size:0.82rem; line-height:1.6; margin:1rem 0 1.6rem; }
+  pre.code .c{ color:var(--ink-soft); }
+
+  .endpoints{ display:grid; gap:0.5rem; margin:1rem 0 1.8rem; }
+  .ep{ display:grid; grid-template-columns:4.2rem 1fr; gap:0.9rem; align-items:baseline; padding:0.6rem 0.9rem; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:0.87rem; }
+  .ep .verb{ font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:0.76rem; padding:0.1rem 0; }
+  .ep .verb.get{ color:var(--teal); } .ep .verb.post{ color:var(--brass); } .ep .verb.put{ color:var(--navy-soft); }
+  .ep code{ font-size:0.85rem; }
+  .ep .desc{ display:block; color:var(--ink-soft); font-size:0.82rem; margin-top:0.15rem; }
+
+  .phase{ display:grid; grid-template-columns:2.6rem 1fr; gap:1rem; padding:1.5rem 0; border-bottom:1px solid var(--line); }
+  .phase:last-child{ border-bottom:none; }
+  .phase .pnum{ font-family:"IBM Plex Mono",monospace; font-size:1.3rem; color:var(--brass); font-weight:500; }
+  .phase h4{ font-size:1.1rem; margin-bottom:0.4rem; }
+  .phase .who{ font-size:0.82rem; color:var(--ink-soft); margin-bottom:0.7rem; }
+  .phase .who .tag{ background:transparent; border-color:var(--navy-soft); color:var(--navy-soft); }
+  .tasklist{ display:grid; gap:0.4rem; margin-top:0.6rem; }
+  .taskitem{ display:grid; grid-template-columns:1.1rem 1fr; gap:0.6rem; font-size:0.9rem; }
+  .taskitem .box{ width:0.8rem; height:0.8rem; border:1.5px solid var(--ink-soft); border-radius:3px; margin-top:0.3rem; }
+  .accept{ margin-top:0.9rem; font-size:0.85rem; background:var(--teal-soft); border-radius:6px; padding:0.7rem 1rem; }
+  .accept .lbl{ font-family:"IBM Plex Mono",monospace; font-size:0.68rem; text-transform:uppercase; color:var(--teal); display:block; margin-bottom:0.25rem; }
+
+  .diagram{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.6rem; margin:1.6rem 0 2rem; overflow-x:auto; }
+  .diagram svg{ display:block; margin:0 auto; min-width:600px; }
+  .diagram-caption{ font-size:0.82rem; color:var(--ink-soft); margin-top:0.9rem; text-align:center; }
+
+  .checklist{ display:grid; gap:0.6rem; margin:1.2rem 0 2rem; }
+  .checkitem{ display:grid; grid-template-columns:1.4rem 1fr auto; gap:0.8rem; align-items:start; padding:0.7rem 0.9rem; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:0.92rem; }
+  .checkitem .box{ width:1rem; height:1rem; border:1.5px solid var(--ink-soft); border-radius:3px; margin-top:0.15rem; }
+  .checkitem .status{ font-family:"IBM Plex Mono",monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; white-space:nowrap; }
+  .status.have{ color:var(--accent-good); } .status.need{ color:var(--accent-crit); } .status.blocked{ color:var(--accent-warn); }
+
+  footer{ max-width:1180px; margin:0 auto; padding:3rem 2.5rem 4rem; border-top:1px solid var(--line); color:var(--ink-soft); font-size:0.85rem; }
+
+  @media (max-width:880px){
+    .layout{ grid-template-columns:1fr; }
+    nav.index{ position:static; display:flex; flex-wrap:wrap; gap:0.5rem; }
+    nav.index a{ border-left:none; border:1px solid var(--line); border-radius:20px; padding:0.3rem 0.8rem; }
+    .cover-meta{ grid-template-columns:repeat(2,1fr); }
+    .shell, footer, .cover{ padding-left:1.3rem; padding-right:1.3rem; }
+    .ep{ grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="cover">
+  <a class="backlink" href="https://claude.ai/code/artifact/e5f6d4a5-b768-4e6b-8587-2d951f6732fd">← Parte 1 — Dossiê de Evolução (time, arquitetura, pipeline)</a>
+  <div class="kicker">Lumina Host — Parte 2 · Plano de Construção</div>
+  <h1>Construir o site da Algas Marinhas e refatorar o Lumina para sustentá-lo</h1>
+  <p class="sub">Modelo de dados, endpoints, telas de admin e o motor de site público — tarefa por tarefa, fase por fase, começando com o iCal gratuito e migrando para o Beds24 quando fizer sentido.</p>
+  <div class="cover-meta">
+    <div><span class="k">Status</span><span class="v">Pronto para começar a Fase 01</span></div>
+    <div><span class="k">Integração inicial</span><span class="v">iCal gratuito (Fase 01)</span></div>
+    <div><span class="k">Integração final</span><span class="v">Beds24 (Fase 05)</span></div>
+    <div><span class="k">Bloqueio aberto</span><span class="v">Il Cantuccio no site publicado</span></div>
+  </div>
+</div>
+
+<div class="shell">
+<div class="layout">
+  <nav class="index">
+    <a href="#partida"><span class="num">00</span>Ponto de partida</a>
+    <a href="#dados"><span class="num">01</span>Modelo de dados</a>
+    <a href="#backend"><span class="num">02</span>Backend</a>
+    <a href="#painel"><span class="num">03</span>Painel admin</a>
+    <a href="#motor"><span class="num">04</span>Motor do site</a>
+    <a href="#ical"><span class="num">05</span>Integração iCal</a>
+    <a href="#execucao"><span class="num">06</span>Execução por fase</a>
+    <a href="#algas"><span class="num">07</span>Pendências da Algas Marinhas</a>
+    <a href="#agora"><span class="num">08</span>Por onde começar</a>
+  </nav>
+
+  <main>
+
+    <section id="partida">
+      <div class="section-head"><span class="num">00</span><h2>Ponto de partida</h2></div>
+      <p class="lede">Reli tudo que definimos para a Algas Marinhas — o briefing original, as duas correções de escopo, o site publicado (inspecionado de verdade duas vezes) e o dossiê de arquitetura. Este documento traduz aquilo em construção: schema, endpoints, telas, nesta ordem.</p>
+      <div class="twrap"><table>
+        <tr><th>O que já está decidido</th><th>Fonte</th></tr>
+        <tr><td>O site é 100% para captar hóspedes — zero menção ao Lumina/software nele</td><td>Correção explícita do usuário</td></tr>
+        <tr><td>Estrutura de seções validada: hero, sobre, quartos, gastronomia, localização, avaliações, CTA final</td><td>Site publicado (inspecionado)</td></tr>
+        <tr><td>Identidade visual real: verde-mar <code>#1f5d47</code>, azul <code>#143a72</code>, dourado <code>#b8862b</code>; Marcellus + Figtree</td><td>Site publicado (inspecionado)</td></tr>
+        <tr><td>4 tipos de quarto (Duplo, Duplo Amplo, Triplo, Quádruplo), sem tarifa cadastrada</td><td>Site publicado + pesquisa Booking.com</td></tr>
+        <tr><td>CTA único hoje: link externo para a Booking.com em todo botão de reserva</td><td>Site publicado (inspecionado)</td></tr>
+        <tr><td>Il Cantuccio é restaurante parceiro (não da pousada) e permanece na gastronomia, ao lado do café da manhã da casa</td><td>Correção do usuário, 2026-08-27 — <strong>já implementado no seed</strong></td></tr>
+        <tr><td>Integração com Booking.com começa pelo iCal gratuito, migra para Beds24 (~US$9/mês) na Fase 05</td><td>Decisão desta conversa</td></tr>
+      </table></div>
+      <div class="callout">
+        <span class="lbl">Atualização — Il Cantuccio, ao contrário do que este documento dizia antes</span>
+        A instrução de excluir Il Cantuccio estava errada e foi revertida pelo usuário. Il Cantuccio <strong>faz parte</strong> da seção de gastronomia — é um restaurante parceiro que fica colado com a pousada, não é operado por ela. A seção tem dois cards: café da manhã (buffet da própria pousada) e Il Cantuccio (parceiro, deixar claro no texto que não é da casa). Já implementado no seed do banco (ver seção 06).
+      </div>
+    </section>
+
+    <section id="dados">
+      <div class="section-head"><span class="num">01</span><h2>Modelo de dados</h2></div>
+      <p class="lede">Tudo aditivo sobre o schema atual — nenhuma tabela existente perde campos, só ganha. <code>TableRoom</code> e <code>Reservation</code> continuam sendo a base; o que entra é a camada de conteúdo de vitrine e a camada de sincronização externa.</p>
+
+      <h3><span class="num">a.</span>Organization — tipo, contrato e site</h3>
+      <pre class="code">model Organization {
+  <span class="c">// já existe, muda só o significado:</span>
+  tipo            String   @default("pousada")
+  <span class="c">// "pousada" | "pousada_restaurante" | "restaurante"</span>
+
+  <span class="c">// novo — gestão de contrato de verdade:</span>
+  contractStatus  String   @default("ativo")
+  <span class="c">// "ativo" | "inativo" | "inadimplente"</span>
+  contractStart   DateTime?
+  contractEnd     DateTime?
+
+  <span class="c">// novo — site público:</span>
+  siteSlug        String?  @unique   <span class="c">// ex: "algas-marinhas"</span>
+  sitePublished   Boolean  @default(false)
+
+  roomContents    RoomContent[]
+  packages        Package[]
+  tips            ContentTip[]
+  paymentMethods  PaymentMethod[]
+}</pre>
+
+      <h3><span class="num">b.</span>Conteúdo de vitrine — novo, um por <code>TableRoom</code></h3>
+      <pre class="code">model RoomContent {
+  id              String   @id @default(uuid())
+  tableRoomId     String   @unique
+  descricaoLonga  String?
+  fotos           Json     <span class="c">// array de URLs</span>
+  tarifaBaixaTemp Float?
+  tarifaAltaTemp  Float?
+  tableRoom       TableRoom @relation(fields: [tableRoomId], references: [id])
+}
+
+model Package {
+  id, organizationId, nome, descricao
+  precoPromocional Float?
+  vigenciaInicio, vigenciaFim DateTime?
+  ativo Boolean @default(true)
+}
+
+model ContentTip {
+  id, organizationId
+  tipo    String   <span class="c">// "passeio" | "transfer"</span>
+  titulo  String
+  descricao String?
+  ordem   Int @default(0)
+}
+
+model PaymentMethod {
+  id, organizationId
+  tipo        String  <span class="c">// "pix" | "cartao" | "dinheiro" | "transferencia"</span>
+  instrucoes  String?
+  ativo       Boolean @default(true)
+}</pre>
+
+      <h3><span class="num">c.</span>Sincronização externa — iCal hoje, Beds24 amanhã</h3>
+      <pre class="code">model IcalFeedConfig {
+  id             String   @id @default(uuid())
+  tableRoomId    String   @unique
+  importUrl      String   <span class="c">// export ICS da Booking.com para este quarto</span>
+  lastSyncedAt   DateTime?
+  lastSyncStatus String?  <span class="c">// "ok" | "erro"</span>
+}
+
+model ExternalCalendarBlock {
+  id            String   @id @default(uuid())
+  tableRoomId   String
+  source        String   @default("booking_ical")
+  externalUid   String   <span class="c">// UID do evento ICS, evita duplicar no re-sync</span>
+  checkin       DateTime
+  checkout      DateTime
+  reservationId String?  <span class="c">// preenchido quando o admin lança a reserva de verdade</span>
+  importedAt    DateTime @default(now())
+
+  @@unique([tableRoomId, externalUid])
+}</pre>
+      <p><code>Reservation</code> ganha só um campo: <code>source String @default("painel")</code> (<code>"painel" | "site" | "booking_ical"</code>) — para saber de onde cada reserva veio sem quebrar nada que já existe.</p>
+    </section>
+
+    <section id="backend">
+      <div class="section-head"><span class="num">02</span><h2>Backend — o que muda</h2></div>
+
+      <h3><span class="num">a.</span>API pública (sem autenticação, por <code>siteSlug</code>)</h3>
+      <div class="endpoints">
+        <div class="ep"><span class="verb get">GET</span><div><code>/api/public/:orgSlug/site</code><span class="desc">Organização + quartos com conteúdo + pacotes + dicas + formas de pagamento. Retorna 404 se <code>sitePublished=false</code> ou 503 se <code>contractStatus≠"ativo"</code>.</span></div></div>
+        <div class="ep"><span class="verb get">GET</span><div><code>/api/public/:orgSlug/rooms/:roomId/availability</code><span class="desc">Disponibilidade combinando <code>Reservation</code> ativas + <code>ExternalCalendarBlock</code> do quarto.</span></div></div>
+        <div class="ep"><span class="verb post">POST</span><div><code>/api/public/:orgSlug/reservations</code><span class="desc">Cria <code>Reservation</code> com <code>source:"site"</code>, status <code>"reservado"</code> — pendente de confirmação do admin (sem gateway de pagamento na Fase 01).</span></div></div>
+        <div class="ep"><span class="verb get">GET</span><div><code>/api/public/:orgSlug/rooms/:roomId/calendar.ics</code><span class="desc">Exporta as reservas do Lumina em ICS — o admin cola essa URL na Booking.com para bloquear lá o que foi reservado no site.</span></div></div>
+      </div>
+
+      <h3><span class="num">b.</span>API autenticada — novo</h3>
+      <div class="endpoints">
+        <div class="ep"><span class="verb put">PUT</span><div><code>/api/organizations/:id/contract</code><span class="desc">Super admin: <code>contractStatus</code>, <code>contractStart</code>, <code>contractEnd</code>.</span></div></div>
+        <div class="ep"><span class="verb put">PUT</span><div><code>/api/organizations/:id/site-settings</code><span class="desc"><code>siteSlug</code>, <code>sitePublished</code>.</span></div></div>
+        <div class="ep"><span class="verb get">GET/PUT</span><div><code>/api/room-contents/:tableRoomId</code><span class="desc">Fotos, descrição, tarifas por temporada.</span></div></div>
+        <div class="ep"><span class="verb get">CRUD</span><div><code>/api/packages</code> · <code>/api/tips</code> · <code>/api/payment-methods</code><span class="desc">Escopados por <code>organizationId</code> via <code>orgFilterMiddleware</code> já existente.</span></div></div>
+        <div class="ep"><span class="verb get">CRUD</span><div><code>/api/ical-feeds</code><span class="desc">Cadastrar a URL de export ICS de cada quarto + <code>POST /:id/sync-now</code>.</span></div></div>
+        <div class="ep"><span class="verb get">GET</span><div><code>/api/external-calendar-blocks?unlinked=true</code><span class="desc">Bloqueios da Booking.com que ainda não viraram uma <code>Reservation</code> — a fila de "lançar manualmente".</span></div></div>
+      </div>
+
+      <h3><span class="num">c.</span>Middleware de contrato</h3>
+      <p>Extensão do <code>orgFilterMiddleware</code> existente: se <code>contractStatus≠"ativo"</code>, bloqueia rotas autenticadas normais do painel (como hoje) <strong>e</strong> faz a API pública responder 503 para aquele <code>siteSlug</code> — o site do cliente inativo para de aceitar reserva automaticamente, sem precisar de um passo manual separado.</p>
+    </section>
+
+    <section id="painel">
+      <div class="section-head"><span class="num">03</span><h2>Painel admin — o que muda</h2></div>
+
+      <h3><span class="num">a.</span><code>AdminOrganizations.tsx</code> — cadastro</h3>
+      <p>Troca o <code>&lt;Select&gt;</code> binário (linha 203, hoje só "restaurante"/"pousada") por três opções mutuamente exclusivas, mais os campos de contrato:</p>
+      <ul class="plain">
+        <li>Tipo: <span class="tag">Pousada</span> <span class="tag">Pousada + Restaurante</span> <span class="tag">Restaurante</span></li>
+        <li>Vigência do contrato: data de início, data de fim/renovação</li>
+        <li>Status: <span class="tag">Ativo</span> <span class="tag">Inativo</span> <span class="tag">Inadimplente</span></li>
+      </ul>
+
+      <h3><span class="num">b.</span><code>AppSidebar.tsx</code> — menu condicional</h3>
+      <p>Hoje <code>adminMenuItems</code>/<code>staffMenuItems</code> (linhas 24-38) são arrays estáticos. Passam a ser gerados por uma função <code>getModulesForTipo(tipo)</code> compartilhada, lida a partir de <code>useOrganization().activeOrganization.tipo</code> (o hook já existe, só falta a lógica de filtro):</p>
+      <div class="twrap"><table>
+        <tr><th>Tipo</th><th>PDV Restaurante</th><th>PDV Hotel</th><th>Site &amp; Conteúdo</th></tr>
+        <tr><td class="role">Pousada</td><td>—</td><td>✓</td><td>✓</td></tr>
+        <tr><td class="role">Pousada + Restaurante</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td class="role">Restaurante</td><td>✓</td><td>—</td><td>—</td></tr>
+      </table></div>
+
+      <h3><span class="num">c.</span>Tela nova: "Site &amp; Conteúdo"</h3>
+      <p>Só aparece para organizações com "pousada" no tipo. O admin da própria pousada edita, sem tocar em código:</p>
+      <ul class="plain">
+        <li>Por quarto: fotos, descrição longa, tarifa baixa/alta temporada</li>
+        <li>Pacotes promocionais (nome, descrição, preço, vigência)</li>
+        <li>Dicas de passeio e de transfer (título, descrição, ordem)</li>
+        <li>Formas de pagamento aceitas</li>
+        <li>URL do export ICS da Booking.com por quarto (para a integração da seção 05)</li>
+        <li>Interruptor "Site publicado" + slug (<code>lumina.host/reservar/algas-marinhas</code>)</li>
+      </ul>
+
+      <h3><span class="num">d.</span>Tela nova: "Reservas externas para lançar"</h3>
+      <p>Lista os <code>ExternalCalendarBlock</code> sem <code>reservationId</code> — cada linha vira um botão "Lançar reserva" que pré-preenche datas e quarto, o admin só completa nome/contato do hóspede a partir do que vê na extranet da Booking.com.</p>
+    </section>
+
+    <section id="motor">
+      <div class="section-head"><span class="num">04</span><h2>O site como motor de tema, não um projeto por cliente</h2></div>
+      <p class="lede">O layout já provado da Algas Marinhas vira um conjunto de componentes React que leem da API pública — a "pele" (cores, fontes, fotos, texto) é dado; a estrutura (hero → sobre → quartos → gastronomia → localização → avaliações → CTA) é o motor, igual para todo cliente novo.</p>
+      <div class="twrap"><table>
+        <tr><th>Seção do site</th><th>Vem de</th></tr>
+        <tr><td>Hero (headline, endereço, nota Booking.com)</td><td><code>Organization</code> + campos de texto livre em site-settings</td></tr>
+        <tr><td>Quartos (4 cards)</td><td><code>TableRoom</code> + <code>RoomContent</code> (fotos, descrição, tarifas)</td></tr>
+        <tr><td>Gastronomia</td><td>conteúdo de texto livre por organização (não modelado como <code>TableRoom</code> — é informativo, não reservável)</td></tr>
+        <tr><td>Localização</td><td>texto livre + endereço da <code>Organization</code></td></tr>
+        <tr><td>Avaliações</td><td>campos manuais no site-settings (nota, nº avaliações, sub-notas, citações) — sem integração automática com Booking.com nesta fase</td></tr>
+        <tr><td>CTA de reserva</td><td>formulário próprio (nova Fase 04) chamando <code>POST /api/public/:orgSlug/reservations</code>, em vez do link externo atual</td></tr>
+      </table></div>
+      <p>Para o próximo cliente depois da Algas Marinhas: mesmo componente, dados diferentes. Não se escreve HTML novo — só se cadastra conteúdo.</p>
+    </section>
+
+    <section id="ical">
+      <div class="section-head"><span class="num">05</span><h2>Integração iCal gratuita — como funciona de verdade</h2></div>
+      <div class="diagram">
+        <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fluxo de sincronização iCal">
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+          <style>
+            .b{ fill:var(--paper-raised); stroke:var(--line); stroke-width:1.3; }
+            .b.c{ stroke:var(--navy-soft); stroke-width:1.8; }
+            .t{ font-family:"Public Sans",sans-serif; font-size:12.5px; fill:var(--ink); }
+            .t.s{ font-size:11px; fill:var(--ink-soft); }
+            .f{ stroke:var(--teal); stroke-width:1.6; fill:none; marker-end:url(#a2); color:var(--teal); }
+          </style>
+          <rect x="40" y="110" width="200" height="70" rx="8" class="b"/>
+          <text x="140" y="140" text-anchor="middle" class="t" font-weight="600">Booking.com</text>
+          <text x="140" y="158" text-anchor="middle" class="t s">extranet do quarto</text>
+
+          <rect x="350" y="20" width="200" height="70" rx="8" class="b c"/>
+          <text x="450" y="50" text-anchor="middle" class="t" font-weight="600">Lumina — job de sync</text>
+          <text x="450" y="68" text-anchor="middle" class="t s">IcalFeedConfig · a cada 30-60min</text>
+
+          <rect x="350" y="210" width="200" height="70" rx="8" class="b"/>
+          <text x="450" y="240" text-anchor="middle" class="t" font-weight="600">ExternalCalendarBlock</text>
+          <text x="450" y="258" text-anchor="middle" class="t s">datas bloqueadas, sem dados do hóspede</text>
+
+          <rect x="660" y="110" width="200" height="70" rx="8" class="b"/>
+          <text x="760" y="140" text-anchor="middle" class="t" font-weight="600">Admin</text>
+          <text x="760" y="158" text-anchor="middle" class="t s">lança a reserva de verdade</text>
+
+          <path class="f" d="M240,140 C280,110 310,80 350,60"/>
+          <path class="f" d="M450,90 L450,210"/>
+          <path class="f" d="M550,245 C600,220 630,180 660,150"/>
+          <path class="f" d="M450,280 C450,290 300,290 250,180" stroke-dasharray="3 3"/>
+        </svg>
+        <p class="diagram-caption">Importação: Lumina lê o ICS de export da Booking.com e cria bloqueios de data. Exportação (linha pontilhada): o Lumina também gera um ICS próprio para a Booking.com importar, para reservas feitas direto no site bloquearem lá também.</p>
+      </div>
+      <h3><span class="num">a.</span>Limitações reais, ditas sem rodeio</h3>
+      <ul class="plain">
+        <li>O feed da Booking.com só traz <strong>datas bloqueadas</strong> — sem nome, contato ou valor do hóspede. O admin sempre completa isso manualmente olhando a extranet.</li>
+        <li>Atraso de até 12h do lado da Booking.com — o job do Lumina pode rodar a cada 30-60min, mas isso não acelera o lado deles.</li>
+        <li>Só funciona enquanto a Algas Marinhas não tiver um channel manager certificado ativo — no dia de migrar para o Beds24 (Fase 05), o <code>IcalFeedConfig</code> é desativado.</li>
+        <li>Exige checar se a Algas Marinhas tem no máximo 1 unidade por tipo de quarto — critério de elegibilidade da própria Booking.com para importar/exportar calendário.</li>
+      </ul>
+      <div class="accept">
+        <span class="lbl">Critério de aceite da Fase 01</span>
+        Uma reserva feita na Booking.com aparece como bloqueio em até 1h da sincronização rodar; uma reserva feita no site do Lumina aparece bloqueada na Booking.com depois do admin colar a URL de export; nenhuma reserva duplicada quando o admin lança manualmente a partir de um bloqueio já existente.
+      </div>
+    </section>
+
+    <section id="execucao">
+      <div class="section-head"><span class="num">06</span><h2>Execução por fase</h2></div>
+      <p class="lede">Mesmas 5 fases do dossiê de arquitetura, agora com tarefas atômicas e time responsável (papéis definidos na Parte 1).</p>
+
+      <div class="phase">
+        <div class="pnum">01</div>
+        <div>
+          <h4>Fundação multi-tipo + conteúdo</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">Frontend Sênior</span><span class="tag">UX/UI</span></div>
+          <div class="tasklist">
+            <div class="taskitem"><div class="box">✓</div><div>Migration: <code>tipo</code> para 3 valores + campos de contrato em <code>Organization</code> — feito</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Modelos <code>RoomContent</code>, <code>Package</code>, <code>ContentTip</code>, <code>PaymentMethod</code>, <code>IcalFeedConfig</code>, <code>ExternalCalendarBlock</code> — feito</div></div>
+            <div class="taskitem"><div class="box">✓</div><div><code>AdminOrganizations.tsx</code>: 3 opções de tipo — feito. Campos de vigência (data início/fim) ainda não têm UI própria, só via API</div></div>
+            <div class="taskitem"><div class="box">✓</div><div><code>AppSidebar.tsx</code> + <code>App.tsx</code>: menu e rota derivados do tipo, com bloqueio direto por URL — feito</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Algas Marinhas cadastrada de verdade como "Pousada", com admin próprio (<code>admin@algasmarinhas.com</code>) — feito</div></div>
+          </div>
+          <div class="accept"><span class="lbl">Aceite</span>Trocar o tipo de uma organização muda o menu na hora; PDV Hotel/Restaurante bloqueados também por URL direta, não só escondidos do menu.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">02</div>
+        <div>
+          <h4>Telas de conteúdo</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">Frontend Sênior</span><span class="tag">Designer</span></div>
+          <div class="tasklist">
+            <div class="taskitem"><div class="box">✓</div><div>CRUD completo de fotos/descrição/tarifas por quarto (<code>/api/room-contents</code>) — feito no backend</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>CRUD de pacotes, dicas e formas de pagamento (<code>/api/packages</code>, <code>/api/tips</code>, <code>/api/payment-methods</code>) — feito no backend</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Tela "Site &amp; Conteúdo" no painel, com o toggle de publicar — feito e testado ao vivo (quartos, pacotes, dicas, pagamento, publicação)</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Popular com o conteúdo real (e de exemplo) da Algas Marinhas via seed — feito, ver seção 07</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">03</div>
+        <div>
+          <h4>API pública + motor de site</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">Frontend Sênior</span><span class="tag">Designer</span></div>
+          <div class="tasklist">
+            <div class="taskitem"><div class="box">✓</div><div>4 endpoints públicos da seção 02.a (site, disponibilidade, reserva, calendar.ics) — feito e testado</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Componentes de tema reaproveitando o layout validado (hero/quartos/gastronomia/localização/avaliações) — feito, com a identidade visual real (Marcellus/Figtree, verde/navy/dourado)</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Rota pública <code>/reservar/:orgSlug</code>, fora do <code>ProtectedRoute</code> — feito e testado no navegador</div></div>
+          </div>
+          <div class="accept"><span class="lbl">Aceite</span><code>lumina.host/reservar/algas-marinhas</code> mostra dados reais vindos do painel. <strong>Confirmado ao vivo</strong> — fotos reais, tarifas, gastronomia e formulário de reserva funcionando.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">04</div>
+        <div>
+          <h4>Reserva direta + fila de lançamento manual</h4>
+          <div class="who"><span class="tag">Backend Sênior</span><span class="tag">QA</span></div>
+          <div class="tasklist">
+            <div class="taskitem"><div class="box">✓</div><div>Formulário de reserva no site com checagem de disponibilidade antes de confirmar — feito e testado ao vivo (reserva real criada no banco via clique no navegador)</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>Tela "Reservas externas para lançar", pré-preenchendo quarto/datas a partir do bloqueio — feita e testada ao vivo</div></div>
+            <div class="taskitem"><div class="box">✓</div><div>E2E confirmado: reserva pelo site cria <code>Reservation</code> com <code>source:"site"</code>; bloqueio lançado manualmente vincula <code>reservationId</code> sem duplicar</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="pnum">05</div>
+        <div>
+          <h4>Migração para Beds24</h4>
+          <div class="who"><span class="tag">Engenheiro de Integrações</span><span class="tag">Arquiteto de Hospitalidade</span></div>
+          <div class="tasklist">
+            <div class="taskitem"><div class="box"></div><div>Contratar Beds24, desativar <code>IcalFeedConfig</code> da Algas Marinhas</div></div>
+            <div class="taskitem"><div class="box"></div><div>Integrar API v2 do Beds24: push de tarifa/disponibilidade, webhook de reserva com dados completos</div></div>
+            <div class="taskitem"><div class="box"></div><div><code>Reservation.source = "booking_api"</code> substitui <code>"booking_ical"</code> nas reservas novas</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="algas">
+      <div class="section-head"><span class="num">07</span><h2>Pendências do lado da Algas Marinhas</h2></div>
+      <p class="lede">Resolvidas em 2026-08-27 e já refletidas no seed do banco (<code>backend/prisma/seed.ts</code>) — a maioria como dado de exemplo, marcada para revisão futura com a proprietária.</p>
+      <div class="checklist">
+        <div class="checkitem"><div class="box">✓</div><div><strong>Gastronomia</strong> — café da manhã (casa) + Il Cantuccio (parceiro, deixado claro no texto)</div><div class="status have">Implementado</div></div>
+        <div class="checkitem"><div class="box">✓</div><div><strong>Fotos reais</strong> — 11 fotos coletadas e servidas via <code>/uploads/algas-marinhas/</code>; atribuição por tipo de quarto é provisória, a confirmar</div><div class="status have">Implementado</div></div>
+        <div class="checkitem"><div class="box">✓</div><div><strong>Tarifas por temporada</strong> — valores de exemplo nos 4 tipos de quarto, a proprietária vai revisar</div><div class="status have">Exemplo, revisar depois</div></div>
+        <div class="checkitem"><div class="box">✓</div><div><strong>Formas de pagamento</strong> — confirmado: Pix e Cartão</div><div class="status have">Implementado</div></div>
+        <div class="checkitem"><div class="box">✓</div><div><strong>Pacote promocional</strong> — exemplo temático de Praia do Forte cadastrado, a revisar</div><div class="status have">Exemplo, revisar depois</div></div>
+        <div class="checkitem"><div class="box">✓</div><div><strong>Dicas de passeio e transfer</strong> — lista de exemplo cadastrada (Projeto Tamar, Praia do Porto, transfer do aeroporto), a revisar</div><div class="status have">Exemplo, revisar depois</div></div>
+        <div class="checkitem"><div class="box">✓</div><div><strong>1 unidade por tipo de quarto</strong> — assumido como exemplo, a confirmar com a proprietária</div><div class="status have">Exemplo, revisar depois</div></div>
+        <div class="checkitem"><div class="box"></div><div><strong>URL de export ICS</strong> de cada quarto na extranet da Booking.com</div><div class="status need">Ainda pendente — <code>IcalFeedConfig</code> já criado com <code>importUrl: null</code>, pronto para receber quando a proprietária enviar</div></div>
+      </div>
+    </section>
+
+    <section id="agora">
+      <div class="section-head"><span class="num">08</span><h2>Por onde começar</h2></div>
+      <p>A Fase 01 não depende de nenhuma pendência da seção 07 — pode começar agora mesmo: é só schema e cadastro correto. As Fases 02-04 esperam o conteúdo real chegar. Sugestão de ordem imediata:</p>
+      <p><strong>Fases 01 a 04 estão completas — backend e frontend, testadas de ponta a ponta em navegador real</strong>, não só por API:</p>
+      <ul class="plain">
+        <li>Cadastro com 3 tipos, contrato, menu e rotas condicionais por tipo de organização.</li>
+        <li>Site público em <code>/reservar/algas-marinhas</code>, com a identidade visual real, fotos reais, gastronomia (café da manhã + Il Cantuccio como parceiro), tarifas de exemplo e formulário de reserva funcional.</li>
+        <li>Painel "Site &amp; Conteúdo" para o admin da pousada editar tudo isso sem SQL — testado ao vivo, incluindo persistência real no banco.</li>
+        <li>Painel "Reservas externas para lançar" — testado ao vivo com um bloqueio simulado, reserva lançada e vinculada corretamente.</li>
+      </ul>
+      <p>O único item que resta é <strong>fora do nosso controle técnico</strong>: a URL de export ICS da Booking.com, que só a proprietária pode coletar na extranet dela. Assim que ela enviar, a sincronização automática (import) já tem o campo pronto para receber — e o motor de sync (<code>POST /:id/sync-now</code>) já está implementado e testado com feeds ICS reais.</p>
+      <p>Depois disso, o único passo restante do plano inteiro é a <strong>Fase 05 (Beds24)</strong> — decisão de negócio (contratar o plano) antes de qualquer trabalho técnico adicional.</p>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<footer>
+  Lumina Host — Parte 2 do dossiê de planejamento. Deriva diretamente da Parte 1 (arquitetura, time e pipeline) e do conteúdo real inspecionado do site publicado da Pousada Algas Marinhas.
+</footer>

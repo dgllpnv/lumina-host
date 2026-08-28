@@ -2,6 +2,9 @@ import { Response } from 'express';
 import { prisma } from '../index.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 
+export const ORG_TYPES = ['pousada', 'pousada_restaurante', 'restaurante'] as const;
+export const CONTRACT_STATUSES = ['ativo', 'inativo', 'inadimplente'] as const;
+
 export const listOrganizations = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -80,10 +83,14 @@ export const createOrganization = async (req: AuthenticatedRequest, res: Respons
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { nome, tipo, plano } = req.body;
+    const { nome, tipo, plano, contractStart, contractEnd } = req.body;
 
     if (!nome) {
       return res.status(400).json({ error: 'Nome is required' });
+    }
+
+    if (tipo && !ORG_TYPES.includes(tipo)) {
+      return res.status(400).json({ error: `tipo must be one of: ${ORG_TYPES.join(', ')}` });
     }
 
     const organization = await prisma.organization.create({
@@ -92,6 +99,9 @@ export const createOrganization = async (req: AuthenticatedRequest, res: Respons
         tipo: tipo || 'restaurante',
         plano: plano || 'basico',
         ativo: true,
+        contractStatus: 'ativo',
+        contractStart: contractStart ? new Date(contractStart) : new Date(),
+        contractEnd: contractEnd ? new Date(contractEnd) : null,
       }
     });
 
@@ -109,16 +119,28 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
     }
 
     const id = req.params.id as string;
-    const { nome, tipo, plano, ativo } = req.body;
+    const {
+      nome, tipo, plano, ativo,
+      contractStatus, contractStart, contractEnd,
+      siteSlug, sitePublished, logoUrl,
+    } = req.body;
 
     // Check access
     if (req.user.role !== 'super_admin' && req.user.organizationId !== id) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Only super_admin can change ativo status
-    if (ativo !== undefined && req.user.role !== 'super_admin') {
-      return res.status(403).json({ error: 'Only super admin can change organization status' });
+    const superAdminOnlyFields = [ativo, contractStatus, contractStart, contractEnd];
+    if (superAdminOnlyFields.some(f => f !== undefined) && req.user.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Only super admin can change organization status/contract' });
+    }
+
+    if (tipo && !ORG_TYPES.includes(tipo)) {
+      return res.status(400).json({ error: `tipo must be one of: ${ORG_TYPES.join(', ')}` });
+    }
+
+    if (contractStatus && !CONTRACT_STATUSES.includes(contractStatus)) {
+      return res.status(400).json({ error: `contractStatus must be one of: ${CONTRACT_STATUSES.join(', ')}` });
     }
 
     const organization = await prisma.organization.update({
@@ -128,6 +150,12 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
         ...(tipo && { tipo }),
         ...(plano && { plano }),
         ...(ativo !== undefined && { ativo }),
+        ...(contractStatus && { contractStatus }),
+        ...(contractStart !== undefined && { contractStart: contractStart ? new Date(contractStart) : null }),
+        ...(contractEnd !== undefined && { contractEnd: contractEnd ? new Date(contractEnd) : null }),
+        ...(siteSlug !== undefined && { siteSlug: siteSlug || null }),
+        ...(sitePublished !== undefined && { sitePublished }),
+        ...(logoUrl !== undefined && { logoUrl }),
       }
     });
 

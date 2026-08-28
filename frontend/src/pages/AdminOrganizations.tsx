@@ -48,7 +48,7 @@ export default function AdminOrganizations() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
-  const [newOrgType, setNewOrgType] = useState<"restaurante" | "pousada">("restaurante");
+  const [newOrgType, setNewOrgType] = useState<"pousada" | "pousada_restaurante" | "restaurante">("restaurante");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Redirect se não for super admin
@@ -200,25 +200,35 @@ export default function AdminOrganizations() {
 
                   <div className="space-y-2">
                     <Label htmlFor="org-type">Tipo</Label>
-                    <Select value={newOrgType} onValueChange={(v: "restaurante" | "pousada") => setNewOrgType(v)}>
+                    <Select value={newOrgType} onValueChange={(v: "pousada" | "pousada_restaurante" | "restaurante") => setNewOrgType(v)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="pousada">
+                          <div className="flex items-center gap-2">
+                            <Hotel className="w-4 h-4" />
+                            Pousada
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="pousada_restaurante">
+                          <div className="flex items-center gap-2">
+                            <Hotel className="w-4 h-4" />
+                            <UtensilsCrossed className="w-4 h-4" />
+                            Pousada + Restaurante
+                          </div>
+                        </SelectItem>
                         <SelectItem value="restaurante">
                           <div className="flex items-center gap-2">
                             <UtensilsCrossed className="w-4 h-4" />
                             Restaurante
                           </div>
                         </SelectItem>
-                        <SelectItem value="pousada">
-                          <div className="flex items-center gap-2">
-                            <Hotel className="w-4 h-4" />
-                            Pousada / Hotel
-                          </div>
-                        </SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-slate-500">
+                      Define quais módulos (PDV Hotel, PDV Restaurante, Site &amp; Conteúdo) aparecem para essa organização.
+                    </p>
                   </div>
 
                   <Button
@@ -255,8 +265,8 @@ export default function AdminOrganizations() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { label: "Total", value: organizations.length, icon: Building2 },
-              { label: "Restaurantes", value: organizations.filter(o => o.tipo === 'restaurante').length, icon: UtensilsCrossed },
-              { label: "Pousadas", value: organizations.filter(o => o.tipo === 'pousada').length, icon: Hotel },
+              { label: "Restaurantes", value: organizations.filter(o => o.tipo === 'restaurante' || o.tipo === 'pousada_restaurante').length, icon: UtensilsCrossed },
+              { label: "Pousadas", value: organizations.filter(o => o.tipo === 'pousada' || o.tipo === 'pousada_restaurante').length, icon: Hotel },
               { label: "Ativos", value: organizations.filter(o => o.ativo).length, icon: Users },
             ].map((stat) => (
               <Card key={stat.label} className="p-4 bg-white">
@@ -307,9 +317,9 @@ export default function AdminOrganizations() {
                       {/* Header Image */}
                       <div className="h-32 relative overflow-hidden">
                         <img
-                          src={org.tipo === 'restaurante'
-                            ? "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80"
-                            : "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80"
+                          src={org.tipo === 'pousada'
+                            ? "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80"
+                            : "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80"
                           }
                           alt={org.nome}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -318,15 +328,19 @@ export default function AdminOrganizations() {
                         <div className="absolute bottom-3 left-4 right-4">
                           <Badge
                             variant="secondary"
-                            className={`${org.tipo === 'restaurante'
-                              ? 'bg-orange-500/90 text-white'
-                              : 'bg-blue-500/90 text-white'
+                            className={`${org.tipo === 'pousada'
+                              ? 'bg-blue-500/90 text-white'
+                              : org.tipo === 'pousada_restaurante'
+                              ? 'bg-purple-500/90 text-white'
+                              : 'bg-orange-500/90 text-white'
                             }`}
                           >
-                            {org.tipo === 'restaurante' ? (
-                              <><UtensilsCrossed className="w-3 h-3 mr-1" /> Restaurante</>
-                            ) : (
+                            {org.tipo === 'pousada' ? (
                               <><Hotel className="w-3 h-3 mr-1" /> Pousada</>
+                            ) : org.tipo === 'pousada_restaurante' ? (
+                              <><Hotel className="w-3 h-3 mr-1" /> Pousada + Restaurante</>
+                            ) : (
+                              <><UtensilsCrossed className="w-3 h-3 mr-1" /> Restaurante</>
                             )}
                           </Badge>
                         </div>

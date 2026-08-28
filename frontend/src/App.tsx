@@ -20,6 +20,9 @@ import Financeiro from "./pages/Financeiro";
 import Equipe from "./pages/Equipe";
 import Estoque from "./pages/Estoque";
 import Configuracoes from "./pages/Configuracoes";
+import SiteReserva from "./pages/SiteReserva";
+import SiteConteudo from "./pages/SiteConteudo";
+import ReservasExternas from "./pages/ReservasExternas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,12 +87,13 @@ function SuperAdminRoute({ children }: { children: React.ReactNode }) {
 // ===========================
 // ROTA: Admin e Super Admin
 // ===========================
-function AdminRoute({ children }: { children: React.ReactNode }) {
+function AdminRoute({ children, requiresTipo }: { children: React.ReactNode; requiresTipo?: string[] }) {
   const { user, profile, loading, isAdmin } = useAuth();
+  const { activeOrganization, isLoading: orgLoading } = useOrganization();
 
   console.log('[AdminRoute]', { loading, hasUser: !!user, role: profile?.role, isAdmin });
 
-  if (loading) {
+  if (loading || (requiresTipo && orgLoading)) {
     return <LoadingScreen message="Verificando permissões..." />;
   }
 
@@ -103,13 +107,17 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/pos-restaurante" replace />;
   }
 
+  if (requiresTipo && activeOrganization && !requiresTipo.includes(activeOrganization.tipo)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 }
 
 // ===========================
 // ROTA: Staff (PDV) - Bloqueia acesso sem organização
 // ===========================
-function StaffRoute({ children }: { children: React.ReactNode }) {
+function StaffRoute({ children, requiresTipo }: { children: React.ReactNode; requiresTipo?: string[] }) {
   const { user, profile, loading, isSuperAdmin } = useAuth();
   const { activeOrganization, isLoading: orgLoading } = useOrganization();
 
@@ -129,6 +137,13 @@ function StaffRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/admin/organizations" replace />;
   }
 
+  // Bloqueia acesso direto por URL a um módulo que não existe para o tipo
+  // da organização ativa (ex: PDV Hotel para um restaurante puro).
+  if (requiresTipo && activeOrganization && !requiresTipo.includes(activeOrganization.tipo)) {
+    console.log('[StaffRoute] Módulo não disponível para o tipo desta organização, redirecionando');
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 }
 
@@ -142,6 +157,7 @@ function AppRoutes() {
       <Route path="/" element={<Homepage />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/setup" element={<SetupSuperAdmin />} />
+      <Route path="/reservar/:orgSlug" element={<SiteReserva />} />
 
       {/* ==================== ROTAS SUPER ADMIN ==================== */}
       <Route
@@ -202,6 +218,22 @@ function AppRoutes() {
           </AdminRoute>
         }
       />
+      <Route
+        path="/site-conteudo"
+        element={
+          <AdminRoute requiresTipo={["pousada", "pousada_restaurante"]}>
+            <SiteConteudo />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/reservas-externas"
+        element={
+          <AdminRoute requiresTipo={["pousada", "pousada_restaurante"]}>
+            <ReservasExternas />
+          </AdminRoute>
+        }
+      />
 
       {/* ==================== ROTAS PDV (Todos autenticados) ==================== */}
       <Route
@@ -215,7 +247,7 @@ function AppRoutes() {
       <Route
         path="/pos-restaurante"
         element={
-          <StaffRoute>
+          <StaffRoute requiresTipo={["restaurante", "pousada_restaurante"]}>
             <POSRestaurante />
           </StaffRoute>
         }
@@ -223,7 +255,7 @@ function AppRoutes() {
       <Route
         path="/pos-hotel"
         element={
-          <StaffRoute>
+          <StaffRoute requiresTipo={["pousada", "pousada_restaurante"]}>
             <POSHotel />
           </StaffRoute>
         }

@@ -6,9 +6,12 @@ import { useQueryClient } from '@tanstack/react-query';
 interface Organization {
   id: string;
   nome: string;
-  tipo: 'restaurante' | 'pousada';
+  tipo: 'restaurante' | 'pousada' | 'pousada_restaurante';
   plano: string | null;
   ativo: boolean | null;
+  siteSlug: string | null;
+  sitePublished: boolean;
+  logoUrl: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +71,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         tipo: org.tipo,
         plano: org.plano,
         ativo: org.ativo,
+        siteSlug: org.siteSlug,
+        sitePublished: org.sitePublished,
+        logoUrl: org.logoUrl,
         created_at: org.createdAt,
         updated_at: org.updatedAt,
       }));

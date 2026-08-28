@@ -1,11 +1,19 @@
 import api from './api';
 
+export type OrganizationTipo = 'restaurante' | 'pousada' | 'pousada_restaurante';
+
 export interface Organization {
   id: string;
   nome: string;
-  tipo: 'restaurante' | 'pousada';
+  tipo: OrganizationTipo;
   plano: string | null;
   ativo: boolean;
+  contractStatus: 'ativo' | 'inativo' | 'inadimplente';
+  contractStart: string | null;
+  contractEnd: string | null;
+  siteSlug: string | null;
+  sitePublished: boolean;
+  logoUrl: string | null;
   createdAt: string;
   updatedAt: string;
   _count?: {
@@ -17,15 +25,21 @@ export interface Organization {
 
 export interface CreateOrganizationData {
   nome: string;
-  tipo?: 'restaurante' | 'pousada';
+  tipo?: OrganizationTipo;
   plano?: string;
 }
 
 export interface UpdateOrganizationData {
   nome?: string;
-  tipo?: 'restaurante' | 'pousada';
+  tipo?: OrganizationTipo;
   plano?: string;
   ativo?: boolean;
+  contractStatus?: 'ativo' | 'inativo' | 'inadimplente';
+  contractStart?: string | null;
+  contractEnd?: string | null;
+  siteSlug?: string | null;
+  sitePublished?: boolean;
+  logoUrl?: string | null;
 }
 
 export const organizationsService = {

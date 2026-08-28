@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 
 // Load environment variables
@@ -16,6 +17,12 @@ import tablesRoomsRoutes from './routes/tables-rooms.routes.js';
 import reservationsRoutes from './routes/reservations.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import systemRoutes from './routes/system.routes.js';
+import publicSiteRoutes from './routes/public-site.routes.js';
+import roomContentRoutes from './routes/room-content.routes.js';
+import packagesRoutes from './routes/packages.routes.js';
+import tipsRoutes from './routes/tips.routes.js';
+import paymentMethodsRoutes from './routes/payment-methods.routes.js';
+import icalFeedsRoutes from './routes/ical-feeds.routes.js';
 
 // Initialize Prisma
 export const prisma = new PrismaClient();
@@ -47,6 +54,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -78,6 +86,12 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/tables-rooms', tablesRoomsRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/public', publicSiteRoutes);
+app.use('/api/room-contents', roomContentRoutes);
+app.use('/api/packages', packagesRoutes);
+app.use('/api/tips', tipsRoutes);
+app.use('/api/payment-methods', paymentMethodsRoutes);
+app.use('/api/ical-feeds', icalFeedsRoutes);
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

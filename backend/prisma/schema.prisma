@@ -11,27 +11,40 @@ datasource db {
 // Note: Prisma enums require a migration to change; we use String with
 // validation in code instead, so status/role values stay easy to evolve.
 // AppRole: "super_admin" | "admin" | "staff"
-// OrganizationType: "restaurante" | "pousada"
+// OrganizationType: "pousada" | "pousada_restaurante" | "restaurante"
+// ContractStatus: "ativo" | "inativo" | "inadimplente"
 // ReservationStatus: "reservado" | "checkin" | "checkout" | "cancelado"
+// ReservationSource: "painel" | "site" | "booking_ical" | "booking_api"
 // TableRoomStatus: "livre" | "ocupado" | "sujo" | "reservado"
 // TransactionStatus: "pendente" | "pago" | "cancelado" | "atrasado"
 // TransactionType: "receita" | "despesa"
+// ContentTipType: "passeio" | "transfer"
+// PaymentMethodType: "pix" | "cartao" | "dinheiro" | "transferencia"
 
 model Organization {
-  id        String   @id @default(uuid())
-  nome      String
-  tipo      String   @default("restaurante")
-  plano     String?
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             String    @id @default(uuid())
+  nome           String
+  tipo           String    @default("restaurante")
+  plano          String?
+  ativo          Boolean   @default(true)
+  contractStatus String    @default("ativo") @map("contract_status")
+  contractStart  DateTime? @map("contract_start")
+  contractEnd    DateTime? @map("contract_end")
+  siteSlug       String?   @unique @map("site_slug")
+  sitePublished  Boolean   @default(false) @map("site_published")
+  logoUrl        String?   @map("logo_url")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  profiles     Profile[]
-  transactions FinancialTransaction[]
-  inventory    InventoryItem[]
-  tablesRooms  TableRoom[]
-  reservations Reservation[]
+  profiles       Profile[]
+  transactions   FinancialTransaction[]
+  inventory      InventoryItem[]
+  tablesRooms    TableRoom[]
+  reservations   Reservation[]
+  packages       Package[]
+  tips           ContentTip[]
+  paymentMethods PaymentMethod[]
 
   @@map("organizations")
 }
@@ -133,10 +146,111 @@ model TableRoom {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization Organization  @relation(fields: [organizationId], references: [id])
-  reservations Reservation[]
+  organization   Organization            @relation(fields: [organizationId], references: [id])
+  reservations   Reservation[]
+  content        RoomContent?
+  icalFeed       IcalFeedConfig?
+  externalBlocks ExternalCalendarBlock[]
 
   @@map("tables_rooms")
+}
+
+model RoomContent {
+  id              String   @id @default(uuid())
+  tableRoomId     String   @unique @map("table_room_id")
+  descricaoLonga  String?  @map("descricao_longa")
+  fotos           Json     @default("[]")
+  tarifaBaixaTemp Float?   @map("tarifa_baixa_temp")
+  tarifaAltaTemp  Float?   @map("tarifa_alta_temp")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tableRoom TableRoom @relation(fields: [tableRoomId], references: [id], onDelete: Cascade)
+
+  @@map("room_contents")
+}
+
+model Package {
+  id               String    @id @default(uuid())
+  organizationId   String    @map("organization_id")
+  nome             String
+  descricao        String?
+  precoPromocional Float?    @map("preco_promocional")
+  vigenciaInicio   DateTime? @map("vigencia_inicio")
+  vigenciaFim      DateTime? @map("vigencia_fim")
+  ativo            Boolean   @default(true)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("packages")
+}
+
+model ContentTip {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  tipo           String // "passeio" | "transfer" | "gastronomia"
+  titulo         String
+  descricao      String?
+  fotos          Json     @default("[]")
+  ordem          Int      @default(0)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("content_tips")
+}
+
+model PaymentMethod {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  tipo           String // "pix" | "cartao" | "dinheiro" | "transferencia"
+  instrucoes     String?
+  ativo          Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("payment_methods")
+}
+
+model IcalFeedConfig {
+  id             String    @id @default(uuid())
+  tableRoomId    String    @unique @map("table_room_id")
+  importUrl      String?   @map("import_url")
+  lastSyncedAt   DateTime? @map("last_synced_at")
+  lastSyncStatus String?   @map("last_sync_status")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  tableRoom TableRoom @relation(fields: [tableRoomId], references: [id], onDelete: Cascade)
+
+  @@map("ical_feed_configs")
+}
+
+model ExternalCalendarBlock {
+  id            String   @id @default(uuid())
+  tableRoomId   String   @map("table_room_id")
+  source        String   @default("booking_ical")
+  externalUid   String   @map("external_uid")
+  checkin       DateTime
+  checkout      DateTime
+  reservationId String?  @map("reservation_id")
+  importedAt    DateTime @default(now()) @map("imported_at")
+
+  // Relations
+  tableRoom TableRoom @relation(fields: [tableRoomId], references: [id], onDelete: Cascade)
+
+  @@unique([tableRoomId, externalUid])
+  @@map("external_calendar_blocks")
 }
 
 model Reservation {
@@ -154,6 +268,7 @@ model Reservation {
   actualCheckin  DateTime? @map("actual_checkin")
   actualCheckout DateTime? @map("actual_checkout")
   status         String    @default("reservado")
+  source         String    @default("painel") @map("source")
   dailyRate      Float     @map("daily_rate")
   totalStay      Float?    @map("total_stay")
   notes          String?

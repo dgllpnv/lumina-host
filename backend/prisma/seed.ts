@@ -193,6 +193,177 @@ async function main() {
 
   console.log('Transactions created:', transactions.length);
 
+  // ==========================================================
+  // Pousada Algas Marinhas — primeiro cliente real do Lumina
+  // (Praia do Forte, Bahia). Fotos reais já coletadas; tarifas,
+  // pacote e dicas de passeio/transfer marcados como EXEMPLO —
+  // a proprietária vai revisar e ajustar. URL de export ICS da
+  // Booking.com ainda não coletada (fica pendente, null).
+  // ==========================================================
+  const UPLOADS = '/uploads/algas-marinhas';
+
+  const algasMarinhas = await prisma.organization.upsert({
+    where: { id: 'algas-marinhas' },
+    update: {},
+    create: {
+      id: 'algas-marinhas',
+      nome: 'Pousada Algas Marinhas',
+      tipo: 'pousada',
+      plano: 'premium',
+      ativo: true,
+      contractStatus: 'ativo',
+      contractStart: new Date(),
+      siteSlug: 'algas-marinhas',
+      sitePublished: true,
+      logoUrl: `${UPLOADS}/crest-logo.jpeg`,
+    },
+  });
+
+  console.log('Organization created:', algasMarinhas.nome);
+
+  const algasAdminPassword = await bcrypt.hash('algas123', 12);
+  const algasAdmin = await prisma.profile.upsert({
+    where: { email: 'admin@algasmarinhas.com' },
+    update: { passwordHash: algasAdminPassword },
+    create: {
+      email: 'admin@algasmarinhas.com',
+      passwordHash: algasAdminPassword,
+      nome: 'Admin Algas Marinhas',
+      role: 'admin',
+      organizationId: algasMarinhas.id,
+    },
+  });
+
+  await prisma.userRole.upsert({
+    where: { id: `role-${algasAdmin.id}` },
+    update: {},
+    create: { id: `role-${algasAdmin.id}`, userId: algasAdmin.id, role: 'admin' },
+  });
+
+  console.log('Admin created:', algasAdmin.email);
+
+  // Quartos — nomes e capacidades confirmados; tarifas de exemplo.
+  const roomsData = [
+    { id: 'algas-quarto-duplo', nome: 'Duplo', capacidade: 2, precoBase: 220, tarifaBaixa: 220, tarifaAlta: 320, foto: 'quarto-duplo.jpg', desc: 'Quarto duplo aconchegante, cama de casal, ideal para casais.' },
+    { id: 'algas-quarto-duplo-amplo', nome: 'Duplo Amplo', capacidade: 2, precoBase: 280, tarifaBaixa: 280, tarifaAlta: 390, foto: 'quarto-duplo-amplo.jpg', desc: 'Versão ampliada do Duplo, com mais espaço e acabamento em madeira.' },
+    { id: 'algas-quarto-triplo', nome: 'Triplo', capacidade: 3, precoBase: 330, tarifaBaixa: 330, tarifaAlta: 450, foto: 'quarto-triplo-detalhe.jpg', desc: 'Quarto para até 3 hóspedes, com TV e frigobar.' },
+    { id: 'algas-quarto-quadruplo', nome: 'Quádruplo', capacidade: 4, precoBase: 400, tarifaBaixa: 400, tarifaAlta: 540, foto: 'quarto-quadruplo-loft.jpg', desc: 'Quarto em formato loft com mezanino, para até 4 hóspedes.' },
+  ];
+
+  for (const r of roomsData) {
+    const room = await prisma.tableRoom.upsert({
+      where: { id: r.id },
+      update: {},
+      create: {
+        id: r.id,
+        organizationId: algasMarinhas.id,
+        nome: r.nome,
+        tipo: 'quarto',
+        status: 'livre',
+        capacidade: r.capacidade,
+        precoBase: r.precoBase,
+        descricao: r.desc,
+      },
+    });
+
+    await prisma.roomContent.upsert({
+      where: { tableRoomId: room.id },
+      update: {},
+      create: {
+        tableRoomId: room.id,
+        descricaoLonga: `${r.desc} Tarifas de exemplo — a proprietária irá revisar e ajustar por temporada.`,
+        fotos: [`${UPLOADS}/${r.foto}`],
+        tarifaBaixaTemp: r.tarifaBaixa,
+        tarifaAltaTemp: r.tarifaAlta,
+      },
+    });
+
+    // Feed de iCal gratuito (Fase 01) — configurado, mas sem URL ainda;
+    // fica pendente até a proprietária coletar o link de export da Booking.com.
+    await prisma.icalFeedConfig.upsert({
+      where: { tableRoomId: room.id },
+      update: {},
+      create: { tableRoomId: room.id, importUrl: null },
+    });
+  }
+
+  console.log('Rooms created for Algas Marinhas:', roomsData.length);
+
+  // Gastronomia (reaproveita ContentTip com tipo "gastronomia") — café da
+  // manhã é da própria pousada; Il Cantuccio é restaurante PARCEIRO, ao lado,
+  // não pertence à pousada.
+  const gastronomiaTips = [
+    {
+      id: 'algas-gastro-cafe',
+      titulo: 'Café da manhã',
+      descricao: 'Buffet completo servido pela própria pousada — um dos pontos mais elogiados pelos hóspedes no Booking.com.',
+      fotos: [`${UPLOADS}/comum-varanda.jpg`],
+      ordem: 0,
+    },
+    {
+      id: 'algas-gastro-cantuccio',
+      titulo: 'Il Cantuccio',
+      descricao: 'Restaurante parceiro que fica colado com a pousada — cozinha italiana para almoço, jantar e happy hour. Não é operado pela Algas Marinhas.',
+      fotos: [`${UPLOADS}/il-cantuccio-fachada-1.jpg`, `${UPLOADS}/il-cantuccio-fachada-2.jpg`],
+      ordem: 1,
+    },
+  ];
+
+  for (const t of gastronomiaTips) {
+    await prisma.contentTip.upsert({
+      where: { id: t.id },
+      update: {},
+      create: { id: t.id, organizationId: algasMarinhas.id, tipo: 'gastronomia', ...t },
+    });
+  }
+
+  // Dicas de passeio e transfer — EXEMPLO, a proprietária vai revisar.
+  const otherTips = [
+    { id: 'algas-passeio-tamar', tipo: 'passeio', titulo: 'Projeto Tamar', descricao: '[Exemplo] Santuário de tartarugas marinhas a poucos passos da pousada.', ordem: 0 },
+    { id: 'algas-passeio-praia', tipo: 'passeio', titulo: 'Praia do Porto', descricao: '[Exemplo] A praia mais próxima, a poucos minutos a pé.', ordem: 1 },
+    { id: 'algas-transfer-aeroporto', tipo: 'transfer', titulo: 'Aeroporto de Salvador → Praia do Forte', descricao: '[Exemplo] Cerca de 1h30 de carro; transfer privado ou van compartilhada.', ordem: 0 },
+  ];
+
+  for (const t of otherTips) {
+    await prisma.contentTip.upsert({
+      where: { id: t.id },
+      update: {},
+      create: { id: t.id, organizationId: algasMarinhas.id, fotos: [], ...t },
+    });
+  }
+
+  console.log('Content tips created for Algas Marinhas:', gastronomiaTips.length + otherTips.length);
+
+  // Pacote promocional — EXEMPLO temático de Praia do Forte.
+  await prisma.package.upsert({
+    where: { id: 'algas-pacote-escapada' },
+    update: {},
+    create: {
+      id: 'algas-pacote-escapada',
+      organizationId: algasMarinhas.id,
+      nome: 'Escapada Praia do Forte',
+      descricao: '[Exemplo] Diária + welcome drink — pacote de exemplo, a proprietária irá revisar e ajustar.',
+      precoPromocional: 380,
+      ativo: true,
+    },
+  });
+
+  // Formas de pagamento confirmadas: Pix e Cartão.
+  const paymentMethods = [
+    { id: 'algas-pagto-pix', tipo: 'pix', instrucoes: 'Chave Pix informada após confirmação da reserva.' },
+    { id: 'algas-pagto-cartao', tipo: 'cartao', instrucoes: 'Cartão de crédito ou débito na chegada.' },
+  ];
+
+  for (const p of paymentMethods) {
+    await prisma.paymentMethod.upsert({
+      where: { id: p.id },
+      update: {},
+      create: { ...p, organizationId: algasMarinhas.id, ativo: true },
+    });
+  }
+
+  console.log('Payment methods created for Algas Marinhas:', paymentMethods.length);
+
   console.log('\n========================================');
   console.log('Seed completed successfully!');
   console.log('========================================');
@@ -200,6 +371,9 @@ async function main() {
   console.log('  Super Admin: superadmin@lumina.com / super123');
   console.log('  Admin:       admin@lumina.com / admin123');
   console.log('  Staff:       staff@lumina.com / staff123');
+  console.log('\nAlgas Marinhas (cliente real):');
+  console.log('  Admin: admin@algasmarinhas.com / algas123');
+  console.log('  Site:  GET /api/public/algas-marinhas/site');
   console.log('========================================\n');
 }
 

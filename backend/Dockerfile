@@ -30,7 +30,7 @@ COPY . .
 
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3001/health || exit 1
+  CMD sh -c "curl -f http://localhost:${PORT:-3001}/health || exit 1"
 
 # tsx executa TS direto (sem compilar). Mesmo runtime do dev,
 # mas sem watch — ideal para producao.

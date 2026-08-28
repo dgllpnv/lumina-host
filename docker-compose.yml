@@ -17,6 +17,33 @@ services:
       retries: 5
     restart: unless-stopped
 
+  backend:
+    build: ./backend
+    container_name: lumina-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: "postgresql://postgres:lumina_dev_2024@postgres:5432/lumina_host?schema=public"
+      PORT: 3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:3003/api
+    container_name: lumina-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   lumina_postgres_data:
 

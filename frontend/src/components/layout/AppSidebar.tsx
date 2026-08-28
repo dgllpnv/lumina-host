@@ -11,6 +11,8 @@ import {
   Wallet,
   Hotel,
   UtensilsCrossed,
+  Globe,
+  CalendarClock,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -20,11 +22,18 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Menu para Admin - acesso completo à sua organização
+// Tipo de organização, usado para filtrar os itens de menu abaixo.
+// "restaurante" | "pousada" | "pousada_restaurante"
+type OrgTipo = string | undefined;
+
+// Cada item pode declarar `requiresTipo` — se a organização ativa não tiver
+// um tipo compatível, o item some do menu (ver getModulesForTipo).
 const adminMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "PDV Restaurante", url: "/pos-restaurante", icon: UtensilsCrossed },
-  { title: "PDV Hotel", url: "/pos-hotel", icon: Hotel },
+  { title: "PDV Restaurante", url: "/pos-restaurante", icon: UtensilsCrossed, requiresTipo: ["restaurante", "pousada_restaurante"] },
+  { title: "PDV Hotel", url: "/pos-hotel", icon: Hotel, requiresTipo: ["pousada", "pousada_restaurante"] },
+  { title: "Site & Conteúdo", url: "/site-conteudo", icon: Globe, requiresTipo: ["pousada", "pousada_restaurante"] },
+  { title: "Reservas externas", url: "/reservas-externas", icon: CalendarClock, requiresTipo: ["pousada", "pousada_restaurante"] },
   { title: "Financeiro", url: "/financeiro", icon: Wallet },
   { title: "Estoque", url: "/estoque", icon: Package },
   { title: "Equipe", url: "/equipe", icon: Users },
@@ -33,9 +42,17 @@ const adminMenuItems = [
 
 // Menu para Staff - acesso limitado apenas ao PDV
 const staffMenuItems = [
-  { title: "PDV Restaurante", url: "/pos-restaurante", icon: UtensilsCrossed },
-  { title: "PDV Hotel", url: "/pos-hotel", icon: Hotel },
+  { title: "PDV Restaurante", url: "/pos-restaurante", icon: UtensilsCrossed, requiresTipo: ["restaurante", "pousada_restaurante"] },
+  { title: "PDV Hotel", url: "/pos-hotel", icon: Hotel, requiresTipo: ["pousada", "pousada_restaurante"] },
 ];
+
+// Filtra os itens de um menu pelo tipo da organização ativa. Itens sem
+// `requiresTipo` sempre aparecem; um super admin sem organização selecionada
+// não usa essas listas (ver getMenuItems), então `tipo` undefined aqui só
+// acontece num instante transitório de carregamento.
+function getModulesForTipo<T extends { requiresTipo?: string[] }>(items: T[], tipo: OrgTipo): T[] {
+  return items.filter(item => !item.requiresTipo || (tipo && item.requiresTipo.includes(tipo)));
+}
 
 // Menu para Super Admin - gestão global do SaaS
 const superAdminMenuItems = [
@@ -49,11 +66,12 @@ export function AppSidebar() {
   const { activeOrganization } = useOrganization();
   const location = useLocation();
 
-  // Determina o menu baseado no role do usuário
+  // Determina o menu baseado no role do usuário e no tipo da organização ativa
   const getMenuItems = () => {
     if (isSuperAdmin) return superAdminMenuItems;
-    if (isAdmin) return adminMenuItems;
-    return staffMenuItems; // Staff só vê PDV
+    const tipo = activeOrganization?.tipo;
+    if (isAdmin) return getModulesForTipo(adminMenuItems, tipo);
+    return getModulesForTipo(staffMenuItems, tipo); // Staff só vê PDV
   };
 
   const menuItems = getMenuItems();
