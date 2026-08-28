@@ -13,6 +13,13 @@ export interface TableRoom {
   createdAt: string;
   updatedAt: string;
   reservations?: any[];
+  content?: {
+    id: string;
+    descricaoLonga: string | null;
+    fotos: string[];
+    tarifaBaixaTemp: number | null;
+    tarifaAltaTemp: number | null;
+  } | null;
 }
 
 export interface CreateTableRoomData {

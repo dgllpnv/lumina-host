@@ -43,3 +43,5 @@ export type { PaymentMethod, PaymentMethodTipo, UpsertPaymentMethodData } from '
 
 export { icalFeedsService } from './ical-feeds.service';
 export type { IcalFeedConfig, ExternalCalendarBlock } from './ical-feeds.service';
+
+export { uploadsService } from './uploads.service';

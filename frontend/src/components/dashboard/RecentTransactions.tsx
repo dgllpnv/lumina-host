@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowDownLeft, ArrowUpRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,12 +17,7 @@ interface RecentTransactionsProps {
 
 export function RecentTransactions({ transactions = [], loading = false }: RecentTransactionsProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.4 }}
-      className="bg-card rounded-2xl p-6 border border-border shadow-soft"
-    >
+    <div className="animate-in fade-in duration-500 bg-card rounded-2xl p-6 border border-border shadow-soft">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-card-foreground">
           Últimas Transações
@@ -42,12 +36,9 @@ export function RecentTransactions({ transactions = [], loading = false }: Recen
         </div>
       ) : (
         <div className="space-y-4">
-          {transactions.map((transaction, index) => (
-            <motion.div
+          {transactions.map((transaction) => (
+            <div
               key={transaction.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * index }}
               className="flex items-center justify-between py-3 border-b border-border last:border-0"
             >
               <div className="flex items-center gap-3">
@@ -87,10 +78,10 @@ export function RecentTransactions({ transactions = [], loading = false }: Recen
                   minimumFractionDigits: 2,
                 })}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

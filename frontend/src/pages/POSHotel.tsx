@@ -61,16 +61,21 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, assetUrl } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Imagens dos quartos
-const roomImages = {
-  Standard: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  Luxo: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=80",
-  "Suíte": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=80",
-  "Suíte Master": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=80"
-};
+// Foto do quarto vinda do cadastro (Site & Conteúdo); sem foto, mostra um
+// placeholder neutro em vez de tentar adivinhar uma imagem de estoque.
+function RoomThumb({ foto, nome, className }: { foto?: string; nome: string; className?: string }) {
+  if (foto) {
+    return <img src={assetUrl(foto)} alt={nome} className={className} />;
+  }
+  return (
+    <div className={cn(className, "flex items-center justify-center bg-slate-200")}>
+      <Bed className="w-8 h-8 text-slate-400" />
+    </div>
+  );
+}
 
 // Itens do frigobar
 const frigobarItems = [
@@ -97,6 +102,7 @@ interface RoomView {
   preco: number;
   capacidade: number;
   andar: number;
+  foto?: string;
   hospede?: string;
   telefone?: string;
   email?: string;
@@ -181,6 +187,7 @@ export default function POSHotel() {
           preco: r.precoBase || 0,
           capacidade: r.capacidade || 0,
           andar: r.andar || 0,
+          foto: r.content?.fotos?.[0],
           hospede: activeRes?.guestName,
           telefone: activeRes?.guestPhone || undefined,
           email: activeRes?.guestEmail || undefined,
@@ -584,9 +591,9 @@ export default function POSHotel() {
                         >
                           {/* Room Image */}
                           <div className="h-24 relative overflow-hidden">
-                            <img
-                              src={roomImages[room.tipo as keyof typeof roomImages]}
-                              alt={room.tipo}
+                            <RoomThumb
+                              foto={room.foto}
+                              nome={room.nome}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -811,9 +818,9 @@ export default function POSHotel() {
 
                         {/* Imagem */}
                         <div className="mb-4 rounded-lg overflow-hidden h-24">
-                          <img
-                            src={roomImages[room.tipo as keyof typeof roomImages]}
-                            alt={room.tipo}
+                          <RoomThumb
+                            foto={room.foto}
+                            nome={room.nome}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -872,9 +879,9 @@ export default function POSHotel() {
 
             {selectedRoom && (
               <div className="space-y-4 mt-4">
-                <img
-                  src={roomImages[selectedRoom.tipo as keyof typeof roomImages]}
-                  alt={selectedRoom.tipo}
+                <RoomThumb
+                  foto={selectedRoom.foto}
+                  nome={selectedRoom.nome}
                   className="w-full h-48 object-cover rounded-lg"
                 />
 

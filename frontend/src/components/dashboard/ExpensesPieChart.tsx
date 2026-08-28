@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   PieChart,
   Pie,
@@ -28,33 +27,28 @@ export function ExpensesPieChart({ data = defaultData, loading = false }: Expens
   const chartData = data.length > 0 ? data : defaultData;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.3 }}
-      className="bg-card rounded-2xl p-6 border border-border shadow-soft"
-    >
-      <div className="mb-6">
+    <div className="animate-in fade-in duration-500 bg-card rounded-2xl p-6 border border-border shadow-soft">
+      <div className="mb-4">
         <h3 className="text-lg font-semibold text-card-foreground">
           Despesas por Categoria
         </h3>
         <p className="text-sm text-muted-foreground">Distribuição mensal</p>
       </div>
 
-      <div className="h-[300px] relative">
+      <div className="h-[340px] relative">
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <Pie
                 data={chartData}
                 cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
+                cy="46%"
+                innerRadius={55}
+                outerRadius={85}
                 paddingAngle={4}
                 dataKey="value"
               >
@@ -73,7 +67,8 @@ export function ExpensesPieChart({ data = defaultData, loading = false }: Expens
               />
               <Legend
                 verticalAlign="bottom"
-                height={36}
+                height={48}
+                wrapperStyle={{ paddingTop: 12 }}
                 formatter={(value) => (
                   <span style={{ color: "hsl(var(--muted-foreground))", fontSize: "12px" }}>
                     {value}
@@ -84,6 +79,6 @@ export function ExpensesPieChart({ data = defaultData, loading = false }: Expens
           </ResponsiveContainer>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

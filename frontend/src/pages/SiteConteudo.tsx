@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { PhotoManager } from "@/components/PhotoManager";
 import {
   tablesRoomsService,
   type TableRoom,
@@ -25,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +35,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Hotel, Gift, MapPin, CreditCard, Plus, Trash2, Loader2, Calendar } from "lucide-react";
+import { assetUrl, cn } from "@/lib/utils";
+import { Globe, Hotel, Gift, MapPin, CreditCard, Plus, Trash2, Loader2, Calendar, Bed, ImageOff } from "lucide-react";
 
 const TIP_TIPOS: { value: TipTipo; label: string }[] = [
   { value: "gastronomia", label: "Gastronomia" },
@@ -59,6 +62,7 @@ export default function SiteConteudo() {
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [tips, setTips] = useState<Tip[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [savingRoomId, setSavingRoomId] = useState<string | null>(null);
 
   const [siteSlug, setSiteSlug] = useState("");
   const [sitePublished, setSitePublished] = useState(false);
@@ -116,6 +120,7 @@ export default function SiteConteudo() {
 
   const handleSaveRoomContent = async (roomId: string) => {
     const content = roomContents[roomId];
+    setSavingRoomId(roomId);
     try {
       const saved = await roomContentService.upsert(roomId, {
         descricaoLonga: content?.descricaoLonga || "",
@@ -127,6 +132,8 @@ export default function SiteConteudo() {
       toast({ title: "Salvo", description: "Conteúdo do quarto atualizado." });
     } catch (err) {
       toast({ title: "Erro", description: "Falha ao salvar quarto", variant: "destructive" });
+    } finally {
+      setSavingRoomId(null);
     }
   };
 
@@ -227,7 +234,7 @@ export default function SiteConteudo() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-5xl">
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <Globe className="h-8 w-8 text-primary" />
@@ -244,93 +251,132 @@ export default function SiteConteudo() {
           </div>
         ) : (
           <Tabs defaultValue="quartos">
-            <TabsList>
-              <TabsTrigger value="quartos"><Hotel className="h-4 w-4 mr-1" /> Quartos</TabsTrigger>
-              <TabsTrigger value="pacotes"><Gift className="h-4 w-4 mr-1" /> Pacotes</TabsTrigger>
-              <TabsTrigger value="dicas"><MapPin className="h-4 w-4 mr-1" /> Dicas</TabsTrigger>
-              <TabsTrigger value="pagamento"><CreditCard className="h-4 w-4 mr-1" /> Pagamento</TabsTrigger>
-              <TabsTrigger value="publicacao"><Globe className="h-4 w-4 mr-1" /> Publicação</TabsTrigger>
+            <TabsList className="flex-wrap h-auto gap-1">
+              <TabsTrigger value="quartos"><Hotel className="h-4 w-4 mr-1.5" /> Quartos</TabsTrigger>
+              <TabsTrigger value="pacotes"><Gift className="h-4 w-4 mr-1.5" /> Pacotes</TabsTrigger>
+              <TabsTrigger value="dicas"><MapPin className="h-4 w-4 mr-1.5" /> Dicas</TabsTrigger>
+              <TabsTrigger value="pagamento"><CreditCard className="h-4 w-4 mr-1.5" /> Pagamento</TabsTrigger>
+              <TabsTrigger value="publicacao"><Globe className="h-4 w-4 mr-1.5" /> Publicação</TabsTrigger>
             </TabsList>
 
-            {/* QUARTOS */}
-            <TabsContent value="quartos" className="space-y-4 mt-4">
-              {rooms.length === 0 && (
-                <p className="text-muted-foreground py-8 text-center">
+            {/* QUARTOS — cada quarto é um painel que expande ao clicar */}
+            <TabsContent value="quartos" className="mt-5">
+              {rooms.length === 0 ? (
+                <div className="bg-card rounded-2xl border border-border py-16 text-center text-muted-foreground">
+                  <Bed className="h-10 w-10 mx-auto mb-3 opacity-40" />
                   Nenhum quarto cadastrado ainda. Cadastre quartos em Configurações antes de editar o conteúdo do site.
-                </p>
+                </div>
+              ) : (
+                <Accordion type="single" collapsible defaultValue={rooms[0]?.id} className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
+                  {rooms.map((room) => {
+                    const content = roomContents[room.id];
+                    const feed = icalFeeds[room.id];
+                    const capaFoto = content?.fotos?.[0];
+                    return (
+                      <AccordionItem key={room.id} value={room.id} className="border-b-0">
+                        <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-muted/40 [&>svg]:text-muted-foreground">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                              {capaFoto ? (
+                                <img src={assetUrl(capaFoto)} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <ImageOff className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 text-left">
+                              <p className="font-semibold text-base">{room.nome}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {room.capacidade && (
+                                  <span className="text-xs text-muted-foreground">Até {room.capacidade} hóspedes</span>
+                                )}
+                                {content?.tarifaBaixaTemp != null && (
+                                  <Badge variant="secondary" className="text-xs font-normal">R$ {content.tarifaBaixaTemp}/noite</Badge>
+                                )}
+                                {(content?.fotos?.length ?? 0) === 0 && (
+                                  <Badge variant="outline" className="text-xs font-normal text-amber-600 border-amber-300">sem fotos</Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-5 pb-6 pt-1">
+                          <div className="grid gap-5 pt-2">
+                            <div className="grid gap-2">
+                              <Label>Fotos</Label>
+                              <PhotoManager
+                                photos={content?.fotos || []}
+                                onChange={(fotos) => updateRoomField(room.id, "fotos", fotos)}
+                              />
+                            </div>
+
+                            <div className="grid gap-2">
+                              <Label>Descrição para o site</Label>
+                              <Textarea
+                                value={content?.descricaoLonga || ""}
+                                onChange={(e) => updateRoomField(room.id, "descricaoLonga", e.target.value)}
+                                placeholder="Descrição que aparece no site público"
+                                rows={3}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="grid gap-2">
+                                <Label>Tarifa baixa temporada (R$)</Label>
+                                <Input
+                                  type="number"
+                                  value={content?.tarifaBaixaTemp ?? ""}
+                                  onChange={(e) => updateRoomField(room.id, "tarifaBaixaTemp", e.target.value ? parseFloat(e.target.value) : null)}
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label>Tarifa alta temporada (R$)</Label>
+                                <Input
+                                  type="number"
+                                  value={content?.tarifaAltaTemp ?? ""}
+                                  onChange={(e) => updateRoomField(room.id, "tarifaAltaTemp", e.target.value ? parseFloat(e.target.value) : null)}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid gap-2 pt-3 border-t border-border">
+                              <Label className="flex items-center gap-1.5 text-muted-foreground">
+                                <Calendar className="h-3.5 w-3.5" /> URL de export iCal da Booking.com
+                              </Label>
+                              <div className="flex gap-2 items-center">
+                                <Input
+                                  defaultValue={feed?.importUrl || ""}
+                                  placeholder="Ainda não coletado com a proprietária"
+                                  onBlur={(e) => {
+                                    if (e.target.value !== (feed?.importUrl || "")) {
+                                      handleSaveIcalUrl(room.id, e.target.value);
+                                    }
+                                  }}
+                                />
+                                {feed?.lastSyncStatus && (
+                                  <Badge variant={feed.lastSyncStatus === "ok" ? "secondary" : "destructive"} className="flex-shrink-0">
+                                    {feed.lastSyncStatus === "ok" ? "Sincronizado" : "Erro"}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end pt-1">
+                              <Button onClick={() => handleSaveRoomContent(room.id)} disabled={savingRoomId === room.id}>
+                                {savingRoomId === room.id && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                Salvar alterações
+                              </Button>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               )}
-              {rooms.map((room) => {
-                const content = roomContents[room.id];
-                const feed = icalFeeds[room.id];
-                return (
-                  <div key={room.id} className="bg-card rounded-xl border border-border p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">{room.nome}</h3>
-                      <Button size="sm" onClick={() => handleSaveRoomContent(room.id)}>Salvar</Button>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Descrição para o site</Label>
-                      <Textarea
-                        value={content?.descricaoLonga || ""}
-                        onChange={(e) => updateRoomField(room.id, "descricaoLonga", e.target.value)}
-                        placeholder="Descrição que aparece no site público"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Fotos (uma URL por linha)</Label>
-                      <Textarea
-                        rows={3}
-                        value={(content?.fotos || []).join("\n")}
-                        onChange={(e) => updateRoomField(room.id, "fotos", e.target.value.split("\n").filter(Boolean))}
-                        placeholder="/uploads/algas-marinhas/quarto-duplo.jpg"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Tarifa baixa temporada (R$)</Label>
-                        <Input
-                          type="number"
-                          value={content?.tarifaBaixaTemp ?? ""}
-                          onChange={(e) => updateRoomField(room.id, "tarifaBaixaTemp", e.target.value ? parseFloat(e.target.value) : null)}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Tarifa alta temporada (R$)</Label>
-                        <Input
-                          type="number"
-                          value={content?.tarifaAltaTemp ?? ""}
-                          onChange={(e) => updateRoomField(room.id, "tarifaAltaTemp", e.target.value ? parseFloat(e.target.value) : null)}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid gap-2 pt-2 border-t border-border">
-                      <Label className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" /> URL de export iCal da Booking.com
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          defaultValue={feed?.importUrl || ""}
-                          placeholder="Ainda não coletado com a proprietária"
-                          onBlur={(e) => {
-                            if (e.target.value !== (feed?.importUrl || "")) {
-                              handleSaveIcalUrl(room.id, e.target.value);
-                            }
-                          }}
-                        />
-                        {feed?.lastSyncStatus && (
-                          <Badge variant={feed.lastSyncStatus === "ok" ? "secondary" : "destructive"}>
-                            {feed.lastSyncStatus === "ok" ? "Sincronizado" : "Erro"}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
             </TabsContent>
 
             {/* PACOTES */}
-            <TabsContent value="pacotes" className="space-y-4 mt-4">
+            <TabsContent value="pacotes" className="space-y-4 mt-5">
               <Button size="sm" onClick={() => setPkgDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Novo pacote</Button>
               <div className="grid gap-3">
                 {packages.map((pkg) => (
@@ -352,7 +398,7 @@ export default function SiteConteudo() {
             </TabsContent>
 
             {/* DICAS */}
-            <TabsContent value="dicas" className="space-y-4 mt-4">
+            <TabsContent value="dicas" className="space-y-4 mt-5">
               <Button size="sm" onClick={() => setTipDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Nova dica</Button>
               {TIP_TIPOS.map(({ value, label }) => (
                 <div key={value}>
@@ -378,7 +424,7 @@ export default function SiteConteudo() {
             </TabsContent>
 
             {/* PAGAMENTO */}
-            <TabsContent value="pagamento" className="space-y-3 mt-4">
+            <TabsContent value="pagamento" className="space-y-3 mt-5">
               {PAYMENT_TIPOS.map(({ value, label }) => {
                 const existing = paymentMethods.find((p) => p.tipo === value);
                 const active = existing?.ativo ?? false;
@@ -392,7 +438,7 @@ export default function SiteConteudo() {
             </TabsContent>
 
             {/* PUBLICAÇÃO */}
-            <TabsContent value="publicacao" className="space-y-4 mt-4 max-w-lg">
+            <TabsContent value="publicacao" className="space-y-4 mt-5 max-w-lg">
               <div className="grid gap-2">
                 <Label>Endereço do site (slug)</Label>
                 <Input value={siteSlug} onChange={(e) => setSiteSlug(e.target.value)} placeholder="algas-marinhas" />

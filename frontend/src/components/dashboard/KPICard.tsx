@@ -1,6 +1,5 @@
 import { LucideIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
 interface KPICardProps {
   title: string;
@@ -24,14 +23,12 @@ export function KPICard({
   loading = false,
 }: KPICardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      className="bg-card rounded-2xl p-6 border border-border shadow-soft hover:shadow-elevated transition-shadow duration-300"
+    <div
+      style={{ animationDelay: `${delay}s` }}
+      className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both bg-card rounded-2xl p-5 border border-border shadow-soft hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-300"
     >
-      <div className="flex items-start justify-between">
-        <div className="space-y-1 flex-1">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5 flex-1 min-w-0">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           {loading ? (
             <div className="flex items-center gap-2 h-9">
@@ -39,11 +36,11 @@ export function KPICard({
             </div>
           ) : (
             <>
-              <p className="text-2xl xl:text-3xl font-bold text-card-foreground tracking-tight truncate">{value}</p>
+              <p className="text-2xl font-bold text-card-foreground tracking-tight truncate">{value}</p>
               {change && (
                 <p
                   className={cn(
-                    "text-xs xl:text-sm font-medium truncate",
+                    "text-xs font-medium truncate",
                     changeType === "positive" && "text-success",
                     changeType === "negative" && "text-destructive",
                     changeType === "neutral" && "text-muted-foreground"
@@ -55,10 +52,10 @@ export function KPICard({
             </>
           )}
         </div>
-        <div className={cn("p-2 xl:p-3 rounded-xl flex-shrink-0", iconColor)}>
-          <Icon className="h-5 w-5 xl:h-6 xl:w-6" />
+        <div className={cn("p-2.5 rounded-xl flex-shrink-0", iconColor)}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

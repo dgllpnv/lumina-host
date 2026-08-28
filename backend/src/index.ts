@@ -23,6 +23,7 @@ import packagesRoutes from './routes/packages.routes.js';
 import tipsRoutes from './routes/tips.routes.js';
 import paymentMethodsRoutes from './routes/payment-methods.routes.js';
 import icalFeedsRoutes from './routes/ical-feeds.routes.js';
+import uploadsRoutes from './routes/uploads.routes.js';
 
 // Initialize Prisma
 export const prisma = new PrismaClient();
@@ -92,6 +93,7 @@ app.use('/api/packages', packagesRoutes);
 app.use('/api/tips', tipsRoutes);
 app.use('/api/payment-methods', paymentMethodsRoutes);
 app.use('/api/ical-feeds', icalFeedsRoutes);
+app.use('/api/uploads', uploadsRoutes);
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

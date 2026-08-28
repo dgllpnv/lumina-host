@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Loader2, Trophy, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,12 +22,7 @@ const rankColors = [
 
 export function TopProducts({ products = [], loading = false }: TopProductsProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.35 }}
-      className="bg-card rounded-2xl p-6 border border-border shadow-soft"
-    >
+    <div className="animate-in fade-in duration-500 bg-card rounded-2xl p-6 border border-border shadow-soft">
       <div className="flex items-center gap-2 mb-6">
         <Trophy className="h-5 w-5 text-amber-500" />
         <div>
@@ -52,11 +46,8 @@ export function TopProducts({ products = [], loading = false }: TopProductsProps
       ) : (
         <div className="space-y-3">
           {products.map((product, index) => (
-            <motion.div
+            <div
               key={product.nome}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * index }}
               className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
             >
               <div
@@ -80,10 +71,10 @@ export function TopProducts({ products = [], loading = false }: TopProductsProps
                   R$ {product.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

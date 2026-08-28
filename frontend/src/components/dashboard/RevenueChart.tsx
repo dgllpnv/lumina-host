@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   LineChart,
   Line,
@@ -36,12 +35,7 @@ export function RevenueChart({ data = defaultData, loading = false }: RevenueCha
   const chartData = data.length > 0 ? data : defaultData;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.2 }}
-      className="bg-card rounded-2xl p-6 border border-border shadow-soft"
-    >
+    <div className="animate-in fade-in duration-500 bg-card rounded-2xl p-6 border border-border shadow-soft">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-card-foreground">
           Fluxo de Caixa
@@ -101,6 +95,6 @@ export function RevenueChart({ data = defaultData, loading = false }: RevenueCha
           </ResponsiveContainer>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -21,6 +21,7 @@ export const listTablesRooms = async (req: AuthenticatedRequest, res: Response) 
 
     const items = await prisma.tableRoom.findMany({
       where,
+      include: { content: true },
       orderBy: [{ andar: 'asc' }, { nome: 'asc' }],
     });
 
