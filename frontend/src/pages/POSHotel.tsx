@@ -257,7 +257,11 @@ export default function POSHotel() {
   };
 
   const filteredRooms = rooms.filter(room => {
-    const matchesSearch = room.nome.includes(searchTerm) || room.hospede?.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      !term ||
+      room.nome.toLowerCase().includes(term) ||
+      room.hospede?.toLowerCase().includes(term);
     const matchesStatus = filterStatus === "todos" || room.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -297,6 +301,11 @@ export default function POSHotel() {
       return;
     }
 
+    if (new Date(reservationForm.checkout) <= new Date(reservationForm.checkin)) {
+      toast.error("A data de check-out precisa ser depois da data de check-in");
+      return;
+    }
+
     const room = rooms.find(r => r.id === reservationForm.quartoId);
     if (!room) return;
 
@@ -322,14 +331,20 @@ export default function POSHotel() {
   };
 
   // Realizar check-in
+  const [checkingInId, setCheckingInId] = useState<string | null>(null);
   const handleCheckin = async (reservationId: string, hospedeNome: string) => {
+    if (checkingInId) return; // evita clique duplo disparar dois check-ins da mesma reserva
+    setCheckingInId(reservationId);
     try {
       await reservationsService.checkIn(reservationId);
       toast.success(`Check-in realizado para ${hospedeNome}!`);
+      setShowRoomDetailModal(false);
       await fetchData();
     } catch (error: any) {
       console.error("[Check-in] Erro:", error);
       toast.error("Erro ao realizar check-in: " + (error.response?.data?.error || error.message || "Tente novamente"));
+    } finally {
+      setCheckingInId(null);
     }
   };
 
@@ -394,7 +409,11 @@ export default function POSHotel() {
     setCheckoutStep("complete");
 
     try {
-      await reservationsService.checkOut(selectedRoom.reservationId, true);
+      await reservationsService.checkOut(
+        selectedRoom.reservationId,
+        true,
+        frigobarCart.map(({ nome, quantidade, preco }) => ({ nome, quantidade, preco }))
+      );
       if (pendingCharges.length > 0) {
         await settleCharges(selectedRoom.reservationId, "conta_hospede");
       }
@@ -725,8 +744,17 @@ export default function POSHotel() {
                       </Badge>
 
                       <div className="flex gap-2">
-                        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => handleCheckin(reservation.id, reservation.hospede)}>
-                          <KeyRound className="h-4 w-4 mr-1" />
+                        <Button
+                          size="sm"
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                          disabled={checkingInId === reservation.id}
+                          onClick={() => handleCheckin(reservation.id, reservation.hospede)}
+                        >
+                          {checkingInId === reservation.id ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <KeyRound className="h-4 w-4 mr-1" />
+                          )}
                           Check-in
                         </Button>
                         <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleCancelReservation(reservation.id)}>
@@ -941,12 +969,24 @@ export default function POSHotel() {
                     </Button>
                   )}
                   {selectedRoom.status === "reservado" && (
-                    <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700" onClick={() => {
-                      if (selectedRoom.reservationId && selectedRoom.hospede) {
-                        handleCheckin(selectedRoom.reservationId, selectedRoom.hospede);
-                      }
-                    }}>
-                      <KeyRound className="w-4 h-4 mr-2" />
+                    <Button
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                      disabled={checkingInId === selectedRoom.reservationId}
+                      onClick={() => {
+                        if (selectedRoom.reservationId && selectedRoom.hospede) {
+                          handleCheckin(selectedRoom.reservationId, selectedRoom.hospede);
+                        } else {
+                          toast.error(
+                            "Este quarto está marcado como \"Reservado\" mas não tem nenhuma reserva vinculada. Vá em Configurações e mude o status para \"Livre\", ou crie a reserva por aqui mesmo (Nova Reserva)."
+                          );
+                        }
+                      }}
+                    >
+                      {checkingInId === selectedRoom.reservationId ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <KeyRound className="w-4 h-4 mr-2" />
+                      )}
                       Realizar Check-in
                     </Button>
                   )}
@@ -1035,6 +1075,7 @@ export default function POSHotel() {
                     id="checkout"
                     type="date"
                     className="bg-slate-50"
+                    min={reservationForm.checkin || undefined}
                     value={reservationForm.checkout}
                     onChange={(e) => setReservationForm(prev => ({ ...prev, checkout: e.target.value }))}
                   />

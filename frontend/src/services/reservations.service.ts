@@ -111,8 +111,12 @@ export const reservationsService = {
     return response.data;
   },
 
-  async checkOut(id: string, createTransaction: boolean = true): Promise<Reservation> {
-    const response = await api.post<Reservation>(`/reservations/${id}/check-out`, { createTransaction });
+  async checkOut(
+    id: string,
+    createTransaction: boolean = true,
+    frigobarItems?: { nome: string; quantidade: number; preco: number }[]
+  ): Promise<Reservation> {
+    const response = await api.post<Reservation>(`/reservations/${id}/check-out`, { createTransaction, frigobarItems });
     return response.data;
   },
 

@@ -66,10 +66,20 @@ export function AppSidebar() {
   const { activeOrganization } = useOrganization();
   const location = useLocation();
 
-  // Determina o menu baseado no role do usuário e no tipo da organização ativa
+  // Determina o menu baseado no role do usuário e no tipo da organização ativa.
+  // Super admin "gerenciando" uma organização (activeOrganization setada ao
+  // clicar em "Gerenciar" na lista de organizações) precisa ver o mesmo menu
+  // operacional de um admin comum — senão fica sem UI pra operar nada além do
+  // Dashboard. Sem organização selecionada, continua vendo só o painel global.
   const getMenuItems = () => {
-    if (isSuperAdmin) return superAdminMenuItems;
     const tipo = activeOrganization?.tipo;
+    if (isSuperAdmin) {
+      if (!activeOrganization) return superAdminMenuItems;
+      return [
+        ...getModulesForTipo(adminMenuItems, tipo),
+        { title: "Painel Global", url: "/super-admin", icon: Building2 },
+      ];
+    }
     if (isAdmin) return getModulesForTipo(adminMenuItems, tipo);
     return getModulesForTipo(staffMenuItems, tipo); // Staff só vê PDV
   };
@@ -119,7 +129,7 @@ export function AppSidebar() {
       </div>
 
       {/* Organization Indicator */}
-      {activeOrganization && !isSuperAdmin && (
+      {activeOrganization && (
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.div

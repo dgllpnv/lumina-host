@@ -18,7 +18,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarClock, Loader2, PlusCircle } from "lucide-react";
+import { CalendarClock, Loader2, PlusCircle, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export default function ReservasExternas() {
@@ -81,11 +81,11 @@ export default function ReservasExternas() {
 
       await icalFeedsService.linkBlock(activeBlock.id, reservation.id);
 
-      toast({ title: "Reserva lançada", description: "Bloqueio vinculado à reserva com sucesso." });
+      toast({ title: "Reserva salva", description: "Agora ela aparece junto com as outras reservas do hotel." });
       setDialogOpen(false);
       setBlocks((prev) => prev.filter((b) => b.id !== activeBlock.id));
     } catch (err) {
-      toast({ title: "Erro", description: "Falha ao lançar a reserva", variant: "destructive" });
+      toast({ title: "Erro", description: "Falha ao salvar a reserva", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -97,12 +97,27 @@ export default function ReservasExternas() {
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <CalendarClock className="h-8 w-8 text-primary" />
-            Reservas externas para lançar
+            Reservas do Booking.com para completar
           </h1>
           <p className="text-muted-foreground mt-1">
-            Datas bloqueadas importadas da Booking.com via iCal — o feed só traz datas, sem dados do
-            hóspede. Complete cada uma com o que você vê na extranet da Booking.com.
+            Quando alguém reserva pela Booking.com, esta tela mostra as datas que ficaram ocupadas.
           </p>
+        </div>
+
+        <div className="bg-accent/40 border border-border rounded-xl p-4 flex gap-3">
+          <HelpCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-muted-foreground space-y-1.5">
+            <p>
+              <span className="font-medium text-foreground">Como funciona:</span> a Booking.com avisa o
+              Lumina sempre que um quarto fica ocupado por lá, mas só manda as datas — não manda o nome,
+              telefone ou e-mail do hóspede (isso só aparece na extranet da Booking.com).
+            </p>
+            <p>
+              Por isso, cada bloqueio abaixo precisa que você complete com os dados do hóspede — copiando
+              da extranet da Booking.com — para que a reserva apareça certinha aqui no sistema também,
+              junto com as reservas feitas pelo telefone ou pelo seu site.
+            </p>
+          </div>
         </div>
 
         {loading ? (
@@ -112,10 +127,9 @@ export default function ReservasExternas() {
         ) : blocks.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground bg-card rounded-xl border border-border">
             <CalendarClock className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>Nenhum bloqueio pendente de lançamento.</p>
+            <p>Nenhuma reserva do Booking.com esperando ser completada.</p>
             <p className="text-sm mt-1">
-              Isso aparece aqui quando a sincronização do iCal encontra uma reserva na Booking.com que
-              ainda não existe no Lumina.
+              Assim que uma nova reserva chegar pela Booking.com, ela vai aparecer aqui automaticamente.
             </p>
           </div>
         ) : (
@@ -130,7 +144,7 @@ export default function ReservasExternas() {
                 </div>
                 <Button onClick={() => openDialog(block)}>
                   <PlusCircle className="h-4 w-4 mr-2" />
-                  Lançar reserva
+                  Completar reserva
                 </Button>
               </div>
             ))}
@@ -141,13 +155,13 @@ export default function ReservasExternas() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lançar reserva</DialogTitle>
+            <DialogTitle>Completar reserva do Booking.com</DialogTitle>
             <DialogDescription>
               {activeBlock && (
                 <>
-                  {activeBlock.tableRoom?.nome} · {format(new Date(activeBlock.checkin), "dd/MM/yyyy")} a{" "}
-                  {format(new Date(activeBlock.checkout), "dd/MM/yyyy")}. Preencha com os dados do hóspede
-                  vistos na extranet da Booking.com.
+                  Quarto {activeBlock.tableRoom?.nome} · {format(new Date(activeBlock.checkin), "dd/MM/yyyy")} a{" "}
+                  {format(new Date(activeBlock.checkout), "dd/MM/yyyy")}. Copie o nome e o contato do
+                  hóspede que aparecem na extranet da Booking.com.
                 </>
               )}
             </DialogDescription>
@@ -176,7 +190,7 @@ export default function ReservasExternas() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleConfirm} disabled={saving || !guestName.trim()}>
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Confirmar lançamento
+              Salvar reserva
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -148,6 +148,11 @@ export const createReservation = async (req: AuthenticatedRequest, res: Response
     // Calculate total stay
     const checkin = new Date(checkinDate);
     const checkout = new Date(checkoutDate);
+
+    if (isNaN(checkin.getTime()) || isNaN(checkout.getTime()) || checkout <= checkin) {
+      return res.status(400).json({ error: 'checkoutDate must be after checkinDate' });
+    }
+
     const nights = Math.ceil((checkout.getTime() - checkin.getTime()) / (1000 * 60 * 60 * 24));
     const totalStay = nights * parseFloat(dailyRate);
 
@@ -225,6 +230,13 @@ export const updateReservation = async (req: AuthenticatedRequest, res: Response
 
     // Recalculate total if dates or rate changed
     let newTotalStay = totalStay;
+    if (checkinDate || checkoutDate) {
+      const checkin = new Date(checkinDate || existing.checkinDate);
+      const checkout = new Date(checkoutDate || existing.checkoutDate);
+      if (isNaN(checkin.getTime()) || isNaN(checkout.getTime()) || checkout <= checkin) {
+        return res.status(400).json({ error: 'checkoutDate must be after checkinDate' });
+      }
+    }
     if ((checkinDate || checkoutDate || dailyRate) && !totalStay) {
       const checkin = new Date(checkinDate || existing.checkinDate);
       const checkout = new Date(checkoutDate || existing.checkoutDate);
@@ -328,7 +340,10 @@ export const checkOut = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const { effectiveOrgId } = req;
-    const { createTransaction = true } = req.body;
+    const { createTransaction = true, frigobarItems } = req.body as {
+      createTransaction?: boolean;
+      frigobarItems?: { nome: string; quantidade: number; preco: number }[];
+    };
 
     const existing = await prisma.reservation.findUnique({
       where: { id },
@@ -374,6 +389,27 @@ export const checkOut = async (req: AuthenticatedRequest, res: Response) => {
           categoria: 'hospedagem',
           descricao: `Checkout - ${reservation.guestName} - ${reservation.roomNumber}`,
           valor: reservation.totalStay,
+          status: 'pago',
+          metodoPagto: 'pendente',
+          dataPagamento: new Date(),
+          reservationId: reservation.id,
+        },
+      });
+    }
+
+    // Consumo do frigobar informado no checkout — lançado à parte pra ficar
+    // rastreável no Financeiro (antes ficava só na tela, nunca virava receita de
+    // verdade).
+    const frigobarTotal = (frigobarItems || []).reduce((sum, i) => sum + i.preco * i.quantidade, 0);
+    if (createTransaction && frigobarTotal > 0) {
+      const itemsDescricao = frigobarItems!.map((i) => `${i.quantidade}x ${i.nome}`).join(', ');
+      await prisma.financialTransaction.create({
+        data: {
+          organizationId: reservation.organizationId,
+          tipo: 'receita',
+          categoria: 'frigobar',
+          descricao: `Frigobar - ${reservation.guestName} - ${reservation.roomNumber} (${itemsDescricao})`,
+          valor: frigobarTotal,
           status: 'pago',
           metodoPagto: 'pendente',
           dataPagamento: new Date(),

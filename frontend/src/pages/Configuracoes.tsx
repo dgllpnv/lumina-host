@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { tablesRoomsService, type TableRoom } from "@/services";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { tablesRoomsService, roomContentService, type TableRoom, type RoomContent } from "@/services";
+import { PhotoManager } from "@/components/PhotoManager";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,11 +49,21 @@ import { cn } from "@/lib/utils";
 
 type TableRoomStatus = TableRoom["status"];
 
-const STATUS_OPTIONS: { value: TableRoomStatus; label: string }[] = [
+// Mesas usam os 4 status livremente. Quartos só podem ser marcados manualmente
+// como "Livre" ou "Sujo" (limpeza) — "Ocupado" e "Reservado" são consequência de
+// uma reserva real (check-in/check-out em /pos-hotel), nunca escolhidos à mão aqui.
+// Definir isso manualmente deixava o quarto "reservado" sem reserva nenhuma por
+// trás, e o botão de check-in em /pos-hotel travava sem fazer nada.
+const STATUS_OPTIONS_MESA: { value: TableRoomStatus; label: string }[] = [
   { value: "livre", label: "Livre" },
   { value: "ocupado", label: "Ocupado" },
   { value: "sujo", label: "Sujo" },
   { value: "reservado", label: "Reservado" },
+];
+
+const STATUS_OPTIONS_QUARTO: { value: TableRoomStatus; label: string }[] = [
+  { value: "livre", label: "Livre" },
+  { value: "sujo", label: "Aguardando limpeza" },
 ];
 
 const emptyForm = {
@@ -66,17 +78,30 @@ const emptyForm = {
 
 export default function Configuracoes() {
   const { profile } = useAuth();
+  const { activeOrganization } = useOrganization();
   const { toast } = useToast();
+
+  // "restaurante" | "pousada" | "pousada_restaurante" — mesas só fazem sentido
+  // pra quem tem restaurante/PDV; uma pousada pura não gerencia mesas.
+  const hasRestaurante = activeOrganization?.tipo === "restaurante" || activeOrganization?.tipo === "pousada_restaurante";
+  const hasPousada = activeOrganization?.tipo === "pousada" || activeOrganization?.tipo === "pousada_restaurante";
+
   const [items, setItems] = useState<TableRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"mesas" | "quartos">("mesas");
+  const [activeTab, setActiveTab] = useState<"mesas" | "quartos">(hasRestaurante ? "mesas" : "quartos");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<TableRoom | null>(null);
   const [deletingItem, setDeletingItem] = useState<TableRoom | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [roomContent, setRoomContent] = useState<RoomContent | null>(null);
+  const [loadingContent, setLoadingContent] = useState(false);
+
+  useEffect(() => {
+    if (!hasRestaurante && activeTab === "mesas") setActiveTab("quartos");
+  }, [hasRestaurante, activeTab]);
 
   useEffect(() => {
     fetchItems();
@@ -101,6 +126,7 @@ export default function Configuracoes() {
 
   const handleOpenCreate = () => {
     setEditingItem(null);
+    setRoomContent(null);
     setForm({
       ...emptyForm,
       tipo: activeTab === "mesas" ? "mesa" : "quarto",
@@ -108,7 +134,7 @@ export default function Configuracoes() {
     setIsDialogOpen(true);
   };
 
-  const handleOpenEdit = (item: TableRoom) => {
+  const handleOpenEdit = async (item: TableRoom) => {
     setEditingItem(item);
     setForm({
       nome: item.nome,
@@ -120,6 +146,19 @@ export default function Configuracoes() {
       precoBase: item.precoBase,
     });
     setIsDialogOpen(true);
+
+    if (item.tipo === "quarto") {
+      setRoomContent(null);
+      setLoadingContent(true);
+      try {
+        const content = await roomContentService.get(item.id);
+        setRoomContent(content);
+      } catch (err) {
+        console.error("Error fetching room content:", err);
+      } finally {
+        setLoadingContent(false);
+      }
+    }
   };
 
   const handleOpenDelete = (item: TableRoom) => {
@@ -155,6 +194,14 @@ export default function Configuracoes() {
 
       if (editingItem) {
         await tablesRoomsService.update(editingItem.id, payload);
+        if (form.tipo === "quarto" && roomContent) {
+          await roomContentService.upsert(editingItem.id, {
+            descricaoLonga: roomContent.descricaoLonga || "",
+            fotos: roomContent.fotos || [],
+            tarifaBaixaTemp: roomContent.tarifaBaixaTemp ?? null,
+            tarifaAltaTemp: roomContent.tarifaAltaTemp ?? null,
+          });
+        }
         toast({
           title: "Sucesso",
           description: `${form.tipo === "mesa" ? "Mesa" : "Quarto"} atualizado com sucesso`,
@@ -259,7 +306,11 @@ export default function Configuracoes() {
               Configuracoes
             </h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie mesas e quartos da sua unidade
+              {hasRestaurante && hasPousada
+                ? "Gerencie mesas e quartos da sua unidade"
+                : hasRestaurante
+                ? "Gerencie as mesas da sua unidade"
+                : "Gerencie os quartos da sua unidade"}
             </p>
           </div>
           <Button onClick={handleOpenCreate} className="gap-2">
@@ -268,7 +319,8 @@ export default function Configuracoes() {
           </Button>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs — só faz sentido mostrar as duas abas se a unidade tiver mesas E quartos */}
+        {hasRestaurante && hasPousada ? (
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "mesas" | "quartos")}>
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="mesas" className="gap-2">
@@ -347,6 +399,22 @@ export default function Configuracoes() {
             </div>
           </TabsContent>
         </Tabs>
+        ) : (
+          <div className="grid grid-cols-3 gap-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-4 border border-border">
+              <p className="text-sm text-muted-foreground">Total de {hasRestaurante ? "Mesas" : "Quartos"}</p>
+              <p className="text-2xl font-bold text-foreground">{hasRestaurante ? stats.mesas.total : stats.quartos.total}</p>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-4 border border-border">
+              <p className="text-sm text-muted-foreground">Livres</p>
+              <p className="text-2xl font-bold text-success">{hasRestaurante ? stats.mesas.livres : stats.quartos.livres}</p>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-4 border border-border">
+              <p className="text-sm text-muted-foreground">Ocupad{hasRestaurante ? "as" : "os"}</p>
+              <p className="text-2xl font-bold text-destructive">{hasRestaurante ? stats.mesas.ocupadas : stats.quartos.ocupados}</p>
+            </motion.div>
+          </div>
+        )}
 
         {/* Table */}
         <motion.div
@@ -433,7 +501,7 @@ export default function Configuracoes() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className={form.tipo === "quarto" ? "sm:max-w-[520px]" : "sm:max-w-[400px]"}>
           <DialogHeader>
             <DialogTitle>
               {editingItem
@@ -483,19 +551,49 @@ export default function Configuracoes() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {STATUS_OPTIONS.map((opt) => (
+                    {form.tipo === "quarto" && (form.status === "ocupado" || form.status === "reservado") && (
+                      <SelectItem value={form.status} disabled>
+                        {form.status === "ocupado" ? "Ocupado (definido pela reserva)" : "Reservado (definido pela reserva)"}
+                      </SelectItem>
+                    )}
+                    {(form.tipo === "quarto" ? STATUS_OPTIONS_QUARTO : STATUS_OPTIONS_MESA).map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {form.tipo === "quarto" && (
+                  <p className="text-xs text-muted-foreground">
+                    "Ocupado" e "Reservado" só mudam através do check-in/check-out em Gestão de Hospedagem.
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Campos avancados para quartos */}
             {form.tipo === "quarto" && (
               <>
+                <div className="grid gap-2">
+                  <Label>Fotos do quarto</Label>
+                  {editingItem ? (
+                    loadingContent ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <PhotoManager
+                        photos={roomContent?.fotos || []}
+                        onChange={(fotos) =>
+                          setRoomContent((prev) => ({ ...(prev || ({} as RoomContent)), tableRoomId: editingItem.id, fotos }))
+                        }
+                      />
+                    )
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Cadastre o quarto primeiro para poder anexar fotos.</p>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="andar">Andar</Label>

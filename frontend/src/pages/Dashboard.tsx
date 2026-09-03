@@ -5,6 +5,7 @@ import { ExpensesPieChart } from "@/components/dashboard/ExpensesPieChart";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { TopProducts } from "@/components/dashboard/TopProducts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import {
   DollarSign,
@@ -17,7 +18,9 @@ import {
 
 export default function Dashboard() {
   const { profile } = useAuth();
+  const { activeOrganization } = useOrganization();
   const { kpis, chartData, expensesByCategory, topProducts, recentTransactions, loading } = useDashboardData();
+  const hasHospedagem = activeOrganization?.tipo === "pousada" || activeOrganization?.tipo === "pousada_restaurante";
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
@@ -99,16 +102,18 @@ export default function Dashboard() {
             delay={0.2}
             loading={loading}
           />
-          <KPICard
-            title="Ocupação Hotel"
-            value={`${kpis.ocupacaoHotel.toFixed(0)}%`}
-            change="Quartos ocupados"
-            changeType={kpis.ocupacaoHotel >= 70 ? "positive" : kpis.ocupacaoHotel >= 40 ? "neutral" : "negative"}
-            icon={Hotel}
-            iconColor="bg-cyan-500/10 text-cyan-500"
-            delay={0.25}
-            loading={loading}
-          />
+          {hasHospedagem && (
+            <KPICard
+              title="Ocupação Hotel"
+              value={`${kpis.ocupacaoHotel.toFixed(0)}%`}
+              change="Quartos ocupados"
+              changeType={kpis.ocupacaoHotel >= 70 ? "positive" : kpis.ocupacaoHotel >= 40 ? "neutral" : "negative"}
+              icon={Hotel}
+              iconColor="bg-cyan-500/10 text-cyan-500"
+              delay={0.25}
+              loading={loading}
+            />
+          )}
         </div>
 
         {/* Charts Row */}

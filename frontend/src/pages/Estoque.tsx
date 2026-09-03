@@ -225,6 +225,17 @@ export default function Estoque() {
     return matchesSearch && matchesCategoria && matchesStatus;
   });
 
+  const produtoNomes = [...new Set(items.map((i) => i.nome))].sort();
+
+  // Inclui categorias legadas/de outros cadastros que não estão na lista fixa
+  // (ex.: "Insumos", "Proteínas" de produtos seedados) — sem isso o Select
+  // mostrava o campo em branco ao editar um produto com categoria "fora da lista",
+  // e salvar sem querer apagava a categoria real do produto.
+  const categoriaOptions = [
+    ...CATEGORIAS,
+    ...new Set(items.map((i) => i.categoria).filter((c): c is string => !!c && !CATEGORIAS.includes(c))),
+  ];
+
   const stats = {
     total: items.length,
     baixoEstoque: items.filter(
@@ -326,7 +337,7 @@ export default function Estoque() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Categorias</SelectItem>
-              {CATEGORIAS.map((cat) => (
+              {categoriaOptions.map((cat) => (
                 <SelectItem key={cat} value={cat}>
                   {cat}
                 </SelectItem>
@@ -481,7 +492,14 @@ export default function Estoque() {
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
                 placeholder="Ex: Coca-Cola 350ml"
+                list="produtos-existentes"
+                autoComplete="off"
               />
+              <datalist id="produtos-existentes">
+                {produtoNomes.map((nome) => (
+                  <option key={nome} value={nome} />
+                ))}
+              </datalist>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -495,7 +513,7 @@ export default function Estoque() {
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS.map((cat) => (
+                    {categoriaOptions.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>
@@ -531,10 +549,11 @@ export default function Estoque() {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={form.quantidade}
+                  value={form.quantidade || ""}
                   onChange={(e) =>
-                    setForm({ ...form, quantidade: parseFloat(e.target.value) || 0 })
+                    setForm({ ...form, quantidade: e.target.value ? parseFloat(e.target.value) : 0 })
                   }
+                  placeholder="0"
                 />
               </div>
               <div className="grid gap-2">

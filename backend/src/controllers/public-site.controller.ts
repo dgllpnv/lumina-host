@@ -126,6 +126,9 @@ export const createPublicReservation = async (req: Request, res: Response) => {
 
     const checkin = new Date(checkinDate);
     const checkout = new Date(checkoutDate);
+    if (isNaN(checkin.getTime()) || isNaN(checkout.getTime()) || checkout <= checkin) {
+      return res.status(400).json({ error: 'A data de check-out precisa ser depois da data de check-in' });
+    }
     const nights = Math.ceil((checkout.getTime() - checkin.getTime()) / (1000 * 60 * 60 * 24));
     const dailyRate = room.content?.tarifaBaixaTemp ?? room.precoBase ?? 0;
 

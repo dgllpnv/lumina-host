@@ -103,8 +103,12 @@ export default function Auth() {
 
         // Mapear mensagens de erro para português
         let errorMessage = error.message;
-        if (error.message === "Invalid login credentials") {
+        if (error.message === "Invalid login credentials" || error.message === "Invalid credentials") {
           errorMessage = "Email ou senha incorretos";
+        } else if (error.message === "Email and password are required") {
+          errorMessage = "Preencha email e senha";
+        } else if (error.message === "Login failed") {
+          errorMessage = "Falha ao entrar. Tente novamente.";
         } else if (error.message.includes("Email not confirmed")) {
           errorMessage = "Email não confirmado. Verifique sua caixa de entrada.";
         } else if (error.message.includes("Too many requests")) {
